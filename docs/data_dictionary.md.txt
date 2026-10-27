@@ -1,0 +1,179 @@
+# Supply Chain Data Dictionary
+
+## 1. Purpose
+
+This document defines the data required for the
+Intelligent Supply Chain Risk & Demand Forecasting project.
+
+It describes:
+- Data sources
+- Tables
+- Columns
+- Data types
+- Primary keys
+- Foreign keys
+- Relationships
+- Business meaning
+- Data quality requirements
+
+## 2. Core Data Domains
+
+The project will use the following major data domains:
+
+1. Products
+2. Sales / Orders
+3. Inventory
+4. Suppliers
+5. Procurement
+6. Logistics / Shipments
+7. Weather
+8. Commodity Prices
+9. Calendar
+
+
+## 3. Data Relationships
+
+The following relationships have been validated using the processed DataCo datasets:
+
+- `sales.product_id` → `products.product_id` (many sales rows can reference one product).
+- `sales.order_item_id` ↔ `logistics.order_item_id` (one-to-one relationship in the current processed datasets).
+
+Validation results:
+- All 180,519 sales order-item IDs are unique.
+- All 180,519 logistics order-item IDs are unique.
+- All 118 distinct sales product IDs match the 118 product records.
+- Sales and logistics contain matching sets of order-item IDs.
+- Joining sales to product IDs preserved all 180,519 sales rows.
+
+Relationships for inventory, suppliers, procurement, weather, commodity prices, and calendar will be defined when those data sources and table designs are finalized.
+
+
+## 4. Table Overview
+
+| Table | Purpose | Expected Grain |
+|---|---|---|
+| products | Product master information | One row per product |
+| sales | Customer/order demand | One row per sales transaction |
+| inventory | Inventory position | One row per product/location/date |
+| suppliers | Supplier master information | One row per supplier |
+| procurement | Purchase/procurement records | One row per purchase/order |
+| logistics | Shipment and delivery information | One row per shipment |
+| weather | External weather conditions | One row per location/date |
+| commodity_prices | Commodity price information | One row per commodity/date |
+| calendar | Date/calendar information | One row per date |
+
+# Data Dictionary — DataCo Supply Chain Dataset
+
+## 1. Dataset Overview
+
+**Source:** DataCo SMART Supply Chain for Big Data Analysis  
+**Data grain:** One row per order item in the sales and logistics datasets; one row per product in the product dataset.
+
+| Dataset | Rows | Columns | Purpose |
+|---|---:|---:|---|
+| Sales | 180,519 | 13 | Sales, quantity, pricing and profit analysis |
+| Products | 118 | 9 | Product and category reference data |
+| Logistics | 180,519 | 14 | Shipping, delivery and destination analysis |
+
+## 2. Sales Dataset — `sales.csv`
+
+| Column | Description |
+|---|---|
+| `order_id` | Order identifier |
+| `order_item_id` | Unique order-item identifier |
+| `order_date` | Date the order was placed |
+| `product_id` | Identifier linking to the product dataset |
+| `customer_id` | Customer identifier |
+| `quantity` | Quantity of the product ordered |
+| `unit_price` | Product unit price |
+| `discount` | Discount amount |
+| `discount_rate` | Discount rate |
+| `sales` | Sales amount recorded in the source |
+| `order_item_total` | Total recorded for the order item |
+| `order_profit` | Profit value recorded in the source |
+| `order_region` | Region associated with the order |
+
+## 3. Product Dataset — `products.csv`
+
+| Column | Description |
+|---|---|
+| `product_id` | Unique product identifier |
+| `product_category_id` | Product category identifier from the source |
+| `product_name` | Product name |
+| `product_price` | Product price recorded in the source |
+| `product_status` | Product status field from the source |
+| `category_id` | Category identifier |
+| `category_name` | Category name |
+| `department_id` | Department identifier |
+| `department_name` | Department name |
+
+## 4. Logistics Dataset — `logistics.csv`
+
+| Column | Description |
+|---|---|
+| `order_id` | Order identifier |
+| `order_item_id` | Unique order-item identifier |
+| `order_date` | Order date |
+| `shipping_date` | Shipping date recorded in the source |
+| `actual_shipping_days` | Actual shipping duration recorded in the source |
+| `scheduled_shipping_days` | Scheduled shipping duration recorded in the source |
+| `delivery_status` | Delivery status recorded in the source |
+| `late_delivery_risk` | Source-provided late-delivery risk indicator |
+| `shipping_mode` | Shipping mode |
+| `market` | Market associated with the order |
+| `order_region` | Order region |
+| `order_country` | Order country |
+| `order_state` | Order state |
+| `order_city` | Order city |
+
+## 5. Validated Relationships
+
+- `sales.product_id` references `products.product_id`.
+- `sales.order_item_id` corresponds to `logistics.order_item_id`.
+- `order_item_id` is unique in both sales and logistics.
+- `product_id` is unique in the product dataset.
+- The product relationship check found no unmatched sales product IDs.
+- Sales and logistics contain matching sets of order-item IDs.
+- Joining sales to the product identifiers preserved the sales row count.
+
+## 6. Known Limitations
+
+- The current datasets do not provide a complete supplier or procurement history.
+- They do not directly provide warehouse stock levels, inventory on hand, or reorder points.
+- Weather and commodity-price data are not included.
+- These fields must be sourced separately or generated as clearly documented synthetic data if required.
+- The meaning and units of financial fields should be confirmed against the source documentation before financial conclusions are made.
+- The source-provided `late_delivery_risk` field should not automatically be treated as a verified prediction target without checking its definition.
+
+## 7. Data Protection
+
+Raw source files remain unchanged. Processed datasets should contain only fields needed for the project's approved analytical purposes. Customer names, email addresses, passwords, street addresses and other unnecessary personal fields are excluded from the current processed datasets.
+
+
+## Data Quality Investigation: Product and Order-Structure Shift
+
+### Finding
+
+An investigation of the original DataCo source identified a substantial change beginning in October 2017.
+
+- From June through September 2017, the dataset contains 20,763 order-item rows across 55 distinct products. Monthly order-item counts range from 4,951 to 5,318.
+- October 2017 contains 2,255 rows across 20 products. Newly appearing products include Web Camera, Children's heaters, and Dell Laptop.
+- November 2017 through January 2018 contains 6,302 rows across 18 products. All orders in this period contain one row, and every row has quantity 1.
+- The newly appearing products each have one distinct recorded unit price in the inspected source data.
+- Order-status categories and shipping-mode distributions remain broadly similar across the compared periods.
+
+### Interpretation
+
+The findings indicate a material change in product composition and order structure in the original dataset. The available evidence does not establish whether this reflects a real business change, a source-data construction issue, or another cause.
+
+### Handling decision
+
+- Preserve the original raw dataset unchanged.
+- Do not automatically delete or alter the affected records.
+- Flag October 2017 onward as a period requiring caution in demand analysis and forecasting.
+- Before selecting a forecasting period, compare model performance across defensible time windows and document the effect of this source-data limitation.
+- Do not interpret the recorded quantity trend as a confirmed change in real customer demand without further supporting evidence.
+
+### Reproducibility
+
+The investigation was performed using `investigate_source_patterns.py`, `investigate_product_status.py`, and `investigate_new_products.py`. These scripts read the original DataCo data and report monthly order structure, product composition, order status, shipping mode, product timelines, and recorded prices.

@@ -1,0 +1,2 @@
+order_items,late_delivery_risk_flagged_items,late_delivery_risk_flag_percent,items_shipping_later_than_schedule,actual_late_percent,average_actual_shipping_days,average_scheduled_shipping_days,average_shipping_delay_days
+180519,98977,54.83,103400,57.28,3.5,2.93,0.57

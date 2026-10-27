@@ -1,0 +1,24 @@
+order_region,order_items,risk_flagged_items,actual_late_items,avg_delay_days,risk_flag_percent,actual_late_percent
+Central Africa,1677,972,1018,0.64,57.96,60.7
+Western Europe,27109,15140,15863,0.6,55.85,58.52
+South Asia,7731,4350,4523,0.6,56.27,58.5
+South of  USA ,4045,2256,2350,0.58,55.77,58.1
+Southeast Asia,9539,5297,5531,0.56,55.53,57.98
+East of USA,6915,3849,4009,0.58,55.66,57.98
+West Asia,6009,3322,3455,0.57,55.28,57.5
+East Africa,1852,1036,1064,0.57,55.94,57.45
+Eastern Europe,3920,2182,2252,0.58,55.66,57.45
+Central America,28341,15518,16224,0.56,54.75,57.25
+South America,14935,8111,8548,0.56,54.31,57.23
+Central Asia,553,306,316,0.65,55.33,57.14
+US Center ,5887,3252,3363,0.59,55.24,57.13
+Southern Europe,9431,5129,5350,0.52,54.38,56.73
+Eastern Asia,7280,3955,4130,0.57,54.33,56.73
+North Africa,3232,1762,1832,0.55,54.52,56.68
+West of USA ,7993,4313,4524,0.56,53.96,56.6
+Northern Europe,9792,5292,5524,0.55,54.04,56.41
+Southern Africa,1157,617,651,0.48,53.33,56.27
+Oceania,10148,5482,5694,0.56,54.02,56.11
+Caribbean,8318,4415,4648,0.55,53.08,55.88
+West Africa,3696,1953,2033,0.55,52.84,55.01
+Canada,959,468,498,0.39,48.8,51.93
