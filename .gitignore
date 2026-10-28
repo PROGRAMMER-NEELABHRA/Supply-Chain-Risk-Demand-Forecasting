@@ -36,3 +36,15 @@ Thumbs.db
 
 # Python package build metadata
 *.egg-info/
+
+# Large local datasets and database
+data/raw/
+dataset/processed/processed/dataco/*.db
+dataset/processed/processed/dataco/logistics.csv
+dataset/processed/processed/dataco/sales.csv
+# Local processed datasets and intermediate model outputs
+dataset/processed/processed/dataco/
+
+dataset/
+
+dataset/
