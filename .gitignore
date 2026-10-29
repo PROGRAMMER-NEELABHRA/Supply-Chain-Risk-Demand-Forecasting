@@ -1,18 +1,18 @@
-# Python
+# Python cache files
 __pycache__/
 *.py[cod]
 *.pyo
 
-# Virtual environment
+# Virtual environments
 .venv/
 venv/
 env/
 
-# IDE
+# IDE settings
 .vscode/
 .idea/
 
-# Environment variables / secrets
+# Environment variables and secrets
 .env
 .env.*
 
@@ -21,11 +21,11 @@ outputs/
 reports/generated/
 visuals/generated/
 
-# Local data artifacts
+# Local processed and external data by default
 data/processed/
 data/external/
 
-# Test / coverage
+# Test and coverage artifacts
 .pytest_cache/
 .coverage
 htmlcov/
@@ -37,14 +37,10 @@ Thumbs.db
 # Python package build metadata
 *.egg-info/
 
-# Large local datasets and database
+# Raw datasets
 data/raw/
+
+# Local database and source CSV copies
 dataset/processed/processed/dataco/*.db
 dataset/processed/processed/dataco/logistics.csv
 dataset/processed/processed/dataco/sales.csv
-# Local processed datasets and intermediate model outputs
-dataset/processed/processed/dataco/
-
-dataset/
-
-dataset/
