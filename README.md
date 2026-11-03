@@ -1,253 +1,196 @@
 # Supply Chain Risk & Demand Forecasting
 
-An analytics project for exploring supply-chain data, preparing product-level demand histories, evaluating demand-forecasting models, and producing historical forecasts that can support a supply-chain risk dashboard.
+An end-to-end analytics demonstration that validates integrated order data, builds observed monthly product demand, evaluates recursive forecasts, and exports quality-aware forecasts and charts for dashboard integration.
 
-> **Important:** The forecasts currently available in this repository cover **February–April 2018** using data ending in **January 2018**. They are historical demonstration forecasts, not current operational predictions.
+> **Historical demonstration only:** The source data ends in January 2018. Generated forecasts cover February–April 2018 and are not present-day operational predictions.
 
-## Project goals
-
-- Integrate and validate supply-chain data.
-- Aggregate order records into monthly product demand.
-- Explore demand history and data-quality issues.
-- Compare baseline forecasting methods with a Random Forest model.
-- Generate three-month forecasts for products with sufficient history.
-- Provide documented CSV outputs for dashboard development.
-- Develop SQL-based data-quality and demand-analysis queries.
-
-## Current project status
-
-| Area | Status |
-|---|---|
-| Raw integrated dataset | Available |
-| Monthly product-demand dataset | Available |
-| Demand feature engineering | Implemented |
-| Naive and Moving Average baselines | Implemented |
-| Random Forest forecasting and tuning | Implemented |
-| Forecast evaluation and analysis scripts | Available |
-| Historical forecast outputs | Generated |
-| Automated tests | Available |
-| SQL reports and data-quality queries | Implemented |
-| Dashboard | Maintained by the dashboard teammate |
-
-## Repository structure
+## Architecture
 
 ```text
-Supply-Chain-Risk-Demand-Forecasting/
-├── data/
-│   ├── raw/
-│   │   └── integrated_supply_chain.csv
-│   ├── processed/
-│   │   ├── monthly_demand_observed.csv
-│   │   └── forecast_product_shortlist.csv
-│   └── external/
-├── dataset/
-│   └── processed/
-│       └── processed/
-│           └── dataco/
-│               └── supply_chain.db
-├── docs/
-│   └── forecasting_data_contract.md
-├── outputs/
-│   ├── forecasts/
-│   └── handoff/
-├── reports/
-├── sql/
-│   ├── schema/
-│   ├── queries/
-│   └── reports/
-├── src/
-│   ├── analysis/
-│   ├── forecasting/
-│   ├── preprocessing/
-│   └── ...
-├── tests/
-├── pyproject.toml
-├── requirements.txt
-└── README.md
+data/raw/integrated_supply_chain.csv
+  -> validate raw records and aggregate by product/month
+  -> data/processed/monthly_demand_observed.csv
+  -> data/quality_review/monthly_demand_observed_rebuilt.csv
+     + classified product-month panel and labelled imputation review
+  -> recursive backtest (Naive, Moving Average, Random Forest)
+  -> three-month future forecast, skip/warning reports, charts
 ```
 
-The repository also contains additional analysis scripts and generated CSVs under `src/analysis/` and `outputs/forecasts/`.
+The workflow is implemented in `src/data/`, `src/analysis/`,
+`src/preprocessing/`, `src/forecasting/`, and `src/visualization/`.
+`run_pipeline.py` runs the stages in order, stops on the first failure, and
+returns a nonzero exit code when a stage fails.
 
-**Note on the database:** A SQLite database is present under `dataset/processed/processed/dataco/`. Its relationship to the current `data/raw/integrated_supply_chain.csv` and monthly-demand pipeline should be checked before treating it as the project's primary database. The `sql/` directory contains SQL reports and queries for demand trends, delivery performance, data quality, and product coverage. The findings from the data-quality investigation are documented in `docs/sql_data_quality_investigation.md`.
+## Dataset and data quality
 
-## Data overview
+The input is `data/raw/integrated_supply_chain.csv`, with order date, product
+ID, quantity, and transaction identifiers. The validated source contains
+180,519 transaction rows, 118 products, and 37 months (January 2015–January
+2018). The reproducible aggregation contains 1,818 observed product-month
+rows.
 
-### Raw input
+The product-by-month grid has 4,366 combinations: 1,818 observed and 2,548
+absent. An absent row is not evidence of zero demand. Ten missing months are
+inside a product's first-to-last observed span; they are separately
+interpolated and labelled synthetic for review. Forecasting and evaluation use
+only `monthly_demand_observed_rebuilt.csv`, never those synthetic values.
 
-`data/raw/integrated_supply_chain.csv`
+The source has a major coverage and transaction-quantity regime change in
+late 2017. This may indicate a source-recording/coverage change; it does not
+prove that demand truly collapsed. See
+[`data/quality_review/DATA_QUALITY_REPORT.md`](./data/quality_review/DATA_QUALITY_REPORT.md)
+and `outputs/forecasts/data_quality_summary.csv`.
 
-The integrated dataset used by the current demand pipeline contains order-level records. Relevant fields include:
+## Install
 
-- `order_date`
-- `product_id`
-- `quantity`
-
-The source data spans **January 2015 through January 2018**, with **180,519 rows** and **118 unique products** in the checks run during development.
-
-### Processed monthly demand
-
-`data/processed/monthly_demand_observed.csv`
-
-This file is created by aggregating order quantities by product and calendar month. Its columns are:
-
-| Column | Meaning |
-|---|---|
-| `month` | Month represented as a date |
-| `product_id` | Product identifier |
-| `demand_units` | Sum of recorded order quantity for that product and month |
-
-The current processed file contains **1,818 recorded product-month rows**, covering January 2015 through January 2018, for 118 products.
-
-The file contains only product-months with recorded orders; it has no explicit zero-demand rows. Therefore, an absent product-month row must **not automatically be interpreted as confirmed zero demand** without verifying the source data's completeness.
-
-## Environment setup
-
-Use Python 3.11 or later.
-
-### 1. Create and activate a virtual environment
-
-From the repository root in PowerShell:
+Use Python 3.11 or later. From the repository root in PowerShell:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-```
-
-If PowerShell blocks activation, you can run the environment's Python directly with `.venv\Scripts\python.exe`.
-
-### 2. Install dependencies
-
-```powershell
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 3. Run tests
+Run the tests:
 
 ```powershell
-python -m pytest
+python -m pytest -q
 ```
 
-The project had 19 passing tests during the latest reported development check. Run the tests again after changes to confirm the current result.
+## Run the complete workflow
 
-## Demand forecasting workflow
-
-Run commands from the repository root.
-
-### 1. Build monthly demand
+From the repository root:
 
 ```powershell
-python -m src.analysis.build_monthly_demand
+python run_pipeline.py
 ```
 
-This reads `data/raw/integrated_supply_chain.csv` and writes `data/processed/monthly_demand_observed.csv`.
+Pipeline stages:
 
-### 2. Run forecasting evaluation and experiments
+1. Validate source rows and rebuild observed monthly demand and data-quality
+   artifacts. Exact duplicate rows, duplicate order-item IDs, invalid dates,
+   nonnumeric IDs/quantities, and nonpositive transaction quantities fail
+   validation.
+2. Evaluate Naive, Moving Average, and Random Forest models.
+3. Generate forecasts, skipped-product reasons, and stale-history warnings.
+4. Create forecast and model-comparison visualizations.
 
-The `src/forecasting/` folder contains scripts for baseline experiments, Random Forest experiments, tuning, and evaluation. Review each script before running it, as some commands regenerate output files.
+Individual stages may also be run with
+`python -m src.analysis.build_monthly_demand`,
+`python -m src.forecasting.run_random_forest_experiment`,
+`python -m src.forecasting.generate_future_forecasts`, and
+`python -m src.visualization.forecast_demo`, from the repository root.
 
-Examples:
+## Methodology and evaluation
 
-```powershell
-python -m src.forecasting.run_baseline_experiment
-python -m src.forecasting.run_random_forest_experiment
-python -m src.forecasting.tune_random_forest
-```
+The forecast horizon is three months. Features are the existing lag (1, 2, 3,
+6, 12), rolling-mean (3, 6), month-number, and quarter features. The Random
+Forest configuration is shared by evaluation and forecasting: 200 trees,
+maximum depth 5, random state 42. Forecasts are recursive: each prediction,
+not the eventual actual, becomes the next step's input. Negative predictions
+are clipped at zero.
 
-### 3. Generate historical forecasts
-
-```powershell
-python -m src.forecasting.generate_future_forecasts
-```
-
-This writes:
-
-- `outputs/forecasts/future_demand_forecasts.csv`
-- `outputs/forecasts/forecast_products_skipped.csv`
-- `outputs/forecasts/forecast_data_warnings.csv`
-
-The current forecast-generation script uses a common cutoff of January 2018 and generates forecasts for February, March, and April 2018. The current model setting is Random Forest with `max_depth=5`.
-
-## Forecasting evaluation
-
-The existing baseline comparison reports the following metrics:
+The backtest trains through October 2016 and recursively predicts November
+2016–January 2017 for 54 products with complete observed history (162 test
+rows). Metrics below are pooled across those test rows:
 
 | Model | MAE | RMSE | WAPE |
 |---|---:|---:|---:|
-| Naive | 21.71 | 25.65 | 33.94% |
-| Moving Average | 19.31 | 22.18 | 30.44% |
-| Random Forest (existing comparison) | 17.06 | 20.74 | 25.77% |
+| Naive | 23.43 | 46.15 | 10.89% |
+| Moving Average | 17.29 | 31.74 | 8.03% |
+| Random Forest | 15.55 | 27.17 | 7.22% |
 
-Lower values indicate lower error for these metrics. In this evaluation, Random Forest outperformed Naive and Moving Average.
+MAE and RMSE are in demand units; WAPE is a percentage. These historical
+results do not prove accuracy after the late-2017 data regime change and
+should not be presented as validation of operational performance.
 
-A separate tuning comparison indicated that a shallower Random Forest (`max_depth=5`) was a provisional candidate. **Do not present the metrics above as the confirmed evaluation of the regenerated depth-5 model unless that exact configuration has been evaluated on the same held-out test data.**
+## Forecast results and limitations
 
-- **MAE:** mean absolute error, in the target's units.
-- **RMSE:** root mean squared error, which penalizes larger errors more heavily.
-- **WAPE:** weighted absolute percentage error, expressed as a percentage.
+The current reproducible run uses January 2018 as the forecast origin and
+and produces three forecast rows for each product with at least one actual
+observation (354 rows for the current 118-product source). Forecasting has
+three explicit tiers:
 
-## Forecast coverage and limitations
+1. **Random Forest:** used only when a product has at least 13 consecutive
+   actual monthly observations to support the lag-12 features and a supervised
+   training row. It uses the existing nine features, 200 trees, depth 5, and
+   random state 42, then forecasts recursively for three months.
+2. **Moving Average baseline:** products without a qualifying recent
+   consecutive run but with at least two observed records use the mean of up
+   to their latest three actual records. This is a baseline estimate, not a
+   Random Forest prediction.
+3. **Naive baseline:** a product with one observed record repeats its last
+   actual value. It is explicitly marked low confidence.
 
-The latest forecast-generation run produced:
+All fallback methods use observed records only; missing months are not
+inserted into their histories. `internal_missing_months` records gaps within
+each product's first-to-last observed span. A stale product is not excluded:
+`months_since_last_record` is retained, confidence is lowered, and the status
+is `STALE_HISTORY_LOW_CONFIDENCE`. Stale and internal-gap warnings are written
+to the warnings file. Stale predictions should not be considered reliable.
+Products with no observed records cannot be forecast and are reported in the
+skip file when they can be identified from the source product set.
 
-- **54 products forecasted**
-- **162 forecast rows** (three months per forecasted product)
-- **64 products skipped** because they did not meet the minimum 12-calendar-month history requirement
-- **54 products with data warnings**
+The current data run uses Random Forest for 54 products, moving-average
+baselines for 55, and naive baselines for 9. There are 0 high-, 30 medium-,
+and 324 low-confidence forecast rows: the most recent observations are stale
+for 108 products, so those products are explicitly downgraded. The method
+summary CSV includes zero-count confidence categories as well as actual
+product and forecast-row counts.
 
-The forecast-generation code fills missing product-months with zero before training. In the current dataset, the monthly-demand file has no explicit zero-demand rows, and the source documentation does not confirm that absent months mean zero demand. All 54 forecasted products also have last recorded demand dates earlier than the January 2018 cutoff.
+The warning report assigns one primary category per product to make category
+counts mutually exclusive: current counts are 108 `STALE_HISTORY`, 6
+`BASELINE_METHOD`, and 4 `INTERNAL_MISSING_MONTHS`. Where warnings overlap,
+`warning_message` retains all applicable details, while `warning_category`
+uses the priority stale history, then internal gaps, then baseline method.
 
-Consequently:
+The output files are under `outputs/forecasts/`:
 
-1. Treat the forecasts as **experimental historical outputs**, not current operational recommendations.
-2. Do not infer that a product is discontinued solely because its recorded orders stop.
-3. Keep the warning and skipped-product reports with the forecast CSV.
-4. Document the zero-demand assumption clearly wherever results are displayed.
-5. Validate source-data completeness before using the forecasts for inventory or purchasing decisions.
+| File | Contents |
+|---|---|
+| `future_demand_forecasts.csv` | Product/month forecasts, method, confidence, quality status, observed-history metadata, origin, and horizon |
+| `forecast_products_skipped.csv` | Products without observed history and reason |
+| `forecast_data_warnings.csv` | One structured row per warned product with primary category, all applicable warning details, and product forecast metadata |
+| `forecast_warning_summary.csv` | Mutually exclusive warned-product counts grouped by primary warning category |
+| `forecast_method_summary.csv` | Product counts by method and forecast-row counts for high/medium/low confidence |
+| `random_forest_model_comparison.csv` | Pooled MAE, RMSE, WAPE, and evaluation-period metadata for all three models |
+| `random_forest_predictions.csv` | Actuals and recursive test predictions |
+| `random_forest_per_product_metrics.csv` | Metrics by product and model |
+| `data_quality_summary.csv` | Source, coverage, gap, imputation, and regime-change summary |
+| `forecast_demonstration.png` | Observed history and forecasts for selected products |
+| `model_comparison.png` | Backtest metric comparison |
 
-## Dashboard handoff
+Dashboard consumers should retain skip and warning files alongside forecasts,
+show the forecast origin/period, and visually distinguish Random Forest model
+predictions from moving-average and naive baseline estimates. Fallback
+estimates are not validated by the Random Forest backtest. The data does not
+establish whether absent months represent zero demand, product lifecycle
+changes, or incomplete recording.
 
-The following files are prepared under `outputs/handoff/` for dashboard integration:
+## Dashboard and other project resources
 
-- `future_demand_forecasts.csv` — historical forecast values and model metadata.
-- `forecast_products_skipped.csv` — products not forecasted and reasons.
-- `forecast_data_warnings.csv` — product-level data warnings.
-- `random_forest_model_comparison.csv` — baseline model comparison metrics.
+The CSV outputs use one row per product/month for forecasts and predictions;
+the comparison and quality-summary files are long-form/tabular reports. They
+are generated directly from the pipeline and require no dashboard-specific
+transformation. The dashboard can join forecast rows on `product_id` and
+`forecast_month`, and surface `data_quality_status`, the skip report, and
+warning report.
 
-The dashboard should show the forecast period and include the data limitations above. These files represent historical results ending in April 2018, not present-day demand forecasts.
+Additional analysis scripts are in `src/analysis/`; SQL investigations and
+queries are in `sql/` and `docs/`. A SQLite database also exists under
+`dataset/processed/processed/dataco/`; confirm its relationship to the
+integrated raw CSV before using it as a pipeline source.
 
-## SQL work planned
+## Limitations
 
-The `sql/` directory is reserved for SQL deliverables. The SQL implementation is not yet complete. Planned files include:
-
-```text
-sql/
-├── schema/
-│   └── 01_create_tables.sql
-├── queries/
-│   ├── 01_data_quality_checks.sql
-│   └── 02_monthly_demand_analysis.sql
-└── reports/
-```
-
-Planned SQL tasks:
-
-- Define tables and data types for the selected dataset.
-- Check missing values, duplicate keys, and date coverage.
-- Summarize monthly demand by product.
-- Identify product histories with long gaps or stale last-order dates.
-- Document query outputs for reproducibility.
-
-Before creating or loading another database, confirm whether the existing SQLite database can be reused and whether its tables match the current integrated dataset.
-
-## Reproducibility and safe data handling
-
-- Run Python commands from the repository root.
-- Keep raw input data unchanged.
-- Treat generated CSVs under `outputs/` as reproducible outputs.
-- Review differences before overwriting existing reports.
-- Do not remove legacy datasets or database files until their use has been confirmed.
-
-## Project disclaimer
-
-This project is an analytical and forecasting prototype. Forecast quality depends on data completeness, evaluation design, and whether historical demand patterns remain relevant. Results should be independently validated before operational use.
+- The source ends in January 2018; forecast dates are historical.
+- The evaluation period predates the late-2017 source-data regime change.
+- Most product-month combinations are absent and cannot safely be assumed to
+  be zero.
+- Random Forest coverage is limited by observed consecutive history; the
+  lower-history tiers are explicit baselines rather than trained models.
+- Stale predictions have low confidence; they are generated for coverage,
+  not claimed as reliable forecasts.
+- Validate source completeness and forecast suitability before inventory,
+  purchasing, or other operational decisions.

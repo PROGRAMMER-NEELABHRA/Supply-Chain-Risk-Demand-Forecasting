@@ -5,12 +5,20 @@ import pandas as pd
 
 
 REQUIRED_COLUMNS = {"month", "product_id", "demand_units"}
+DEFAULT_LAGS = (1, 2, 3, 6, 12)
+DEFAULT_FEATURE_COLUMNS = [
+    *(f"lag_{lag}" for lag in DEFAULT_LAGS),
+    "rolling_mean_3",
+    "rolling_mean_6",
+    "month_number",
+    "quarter",
+]
 
 
 def create_demand_features(
     data: pd.DataFrame,
     *,
-    lags: tuple[int, ...] = (1, 2, 3, 6, 12),
+    lags: tuple[int, ...] = DEFAULT_LAGS,
 ) -> pd.DataFrame:
     """Create lag, rolling-average, and calendar features per product.
 

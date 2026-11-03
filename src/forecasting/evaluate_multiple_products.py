@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from src.data.loaders import load_monthly_demand
 from src.forecasting.baseline import (
     naive_forecast,
     moving_average_forecast,
@@ -82,37 +83,7 @@ def forecast_test_period(
 
 def main() -> None:
     """Evaluate baseline models across eligible products."""
-    if not DATA_FILE.exists():
-        raise FileNotFoundError(f"Dataset not found: {DATA_FILE}")
-
-    df = pd.read_csv(DATA_FILE, parse_dates=["month"])
-
-    required_columns = {"month", "product_id", "demand_units"}
-    missing_columns = required_columns - set(df.columns)
-
-    if missing_columns:
-        raise ValueError(
-            f"Dataset is missing columns: {sorted(missing_columns)}"
-        )
-
-    if df[list(required_columns)].isna().any().any():
-        raise ValueError("Required forecasting fields contain missing values.")
-
-    df["demand_units"] = pd.to_numeric(
-        df["demand_units"],
-        errors="raise",
-    )
-
-    if not pd.Series(df["demand_units"]).map(
-        lambda value: pd.notna(value) and abs(value) != float("inf")
-    ).all():
-        raise ValueError("Demand contains non-finite values.")
-
-    if (df["demand_units"] < 0).any():
-        raise ValueError("Negative demand found; investigate before forecasting.")
-
-    if df.duplicated(["product_id", "month"]).any():
-        raise ValueError("Duplicate product-month records found.")
+    df = load_monthly_demand(DATA_FILE)
 
     product_results = []
     prediction_results = []

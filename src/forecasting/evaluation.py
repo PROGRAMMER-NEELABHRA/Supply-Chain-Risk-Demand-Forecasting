@@ -1,8 +1,60 @@
 
 """Evaluation metrics for demand forecasting models."""
 
+from collections.abc import Mapping
+
 import numpy as np
 import pandas as pd
+
+
+def select_products_with_complete_history(
+    dataframe: pd.DataFrame,
+    start_month: pd.Timestamp,
+    end_month: pd.Timestamp,
+) -> pd.DataFrame:
+    """Select products observed in every month of an inclusive date range."""
+    expected_months = pd.date_range(start_month, end_month, freq="MS")
+    coverage = dataframe.groupby("product_id")["month"].agg(
+        month_count="nunique",
+        first_month="min",
+        last_month="max",
+    )
+    eligible_ids = coverage.index[
+        (coverage["month_count"] == len(expected_months))
+        & (coverage["first_month"] == expected_months[0])
+        & (coverage["last_month"] == expected_months[-1])
+    ]
+
+    return dataframe.loc[
+        dataframe["product_id"].isin(eligible_ids)
+    ].copy()
+
+
+def calculate_product_metrics(
+    results: pd.DataFrame,
+    model_columns: Mapping[str, str],
+) -> pd.DataFrame:
+    """Calculate forecast metrics for each product and named model."""
+    metric_rows = []
+
+    for product_id, group in results.groupby("product_id"):
+        actual = group["actual"]
+
+        for model_name, column in model_columns.items():
+            predicted = group[column]
+            metric_rows.append(
+                {
+                    "product_id": product_id,
+                    "model": model_name,
+                    "mae": mean_absolute_error(actual, predicted),
+                    "rmse": root_mean_squared_error(actual, predicted),
+                    "wape_pct": weighted_absolute_percentage_error(
+                        actual, predicted
+                    ),
+                }
+            )
+
+    return pd.DataFrame(metric_rows)
 
 
 def mean_absolute_error(

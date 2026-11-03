@@ -1,76 +1,132 @@
 # Forecasting Results and Dashboard Handoff
 
-## 1. Overview
+## Overview
 
-The demand-forecasting workflow aggregates order-level data into monthly product demand, evaluates baseline forecasting methods against a Random Forest model, and generates three-month historical forecasts.
+The pipeline rebuilds monthly demand from the raw transaction CSV, evaluates
+three models with a recursive three-month backtest, and generates historical
+three-month forecasts. The source ends in January 2018, so future forecast
+months are February–April 2018. They are demonstration artifacts, not current
+operational predictions.
 
-The dataset used by the current forecasting pipeline covers **January 2015 through January 2018**. Therefore, the generated forecast period is **February–April 2018**. These are historical forecasts, not current operational predictions.
+## Evaluation
 
-## 2. Model evaluation
-
-The existing model-comparison report contains the following results:
+The evaluation uses only complete observed product histories. Training ends
+in October 2016; the test period is November 2016–January 2017, with 54
+products and 162 test product-month rows. For each model, predictions are
+recursive: test actuals are recorded for scoring but never fed into subsequent
+test predictions.
 
 | Model | MAE | RMSE | WAPE |
 |---|---:|---:|---:|
-| Naive | 21.71 | 25.65 | 33.94% |
-| Moving Average | 19.31 | 22.18 | 30.44% |
-| Random Forest (existing comparison) | 17.06 | 20.74 | 25.77% |
+| Naive | 23.43 | 46.15 | 10.89% |
+| Moving Average | 17.29 | 31.74 | 8.03% |
+| Random Forest | 15.55 | 27.17 | 7.22% |
 
-Lower values indicate lower error for these metrics. In this evaluation, Random Forest performed better than Naive and Moving Average on MAE, RMSE, and WAPE.
+These are pooled metrics across test rows. MAE and RMSE are in demand units;
+WAPE is expressed as a percentage. Both evaluation and production forecasting
+use the same nine features and Random Forest parameters: 200 estimators,
+maximum depth 5, and random state 42.
 
-A separate tuning comparison identified Random Forest with `max_depth=5` as a provisional configuration. The future-forecast script was then updated to use `max_depth=5` and generated the outputs below. **The table above is from the existing model-comparison report; it should not be presented as the confirmed evaluation of the regenerated depth-5 model unless that exact configuration is evaluated on the same held-out test data.**
+This test period predates the major source-coverage and quantity-distribution
+regime change in late 2017. It does not show that these models are accurate
+under that later data regime, and the results should not be described as
+operational validation.
 
-- **MAE (Mean Absolute Error):** average absolute prediction error, in demand units.
-- **RMSE (Root Mean Squared Error):** error metric that penalizes larger errors more heavily.
-- **WAPE (Weighted Absolute Percentage Error):** total absolute error divided by total actual demand, expressed as a percentage.
+## Tiered forecast coverage and quality handling
 
-## 3. Forecast coverage
+The January 2018 cutoff produces three forecast rows per product with at
+least one observed record: 354 rows for the current 118 products. Products
+with no observed demand are not forecast and are documented in
+`outputs/forecasts/forecast_products_skipped.csv` when present in the known
+product set.
 
-The latest forecast-generation run used Random Forest with `max_depth=5`, with a common cutoff of January 2018.
+In the current run, 54 products use Random Forest, 55 use Moving Average,
+and 9 use Naive. Confidence is 0 high, 30 medium, and 324 low forecast rows.
+The low-confidence count includes all 108 products whose last actual
+observation precedes the January 2018 cutoff; it is not an accuracy estimate.
+All 118 products have actual observations in this source, so the skipped
+products file is empty.
 
-| Item | Result |
-|---|---:|
-| Products in the processed dataset | 118 |
-| Products forecasted | 54 |
-| Products skipped | 64 |
-| Forecast rows generated | 162 |
-| Forecast horizon | 3 months per product |
-| Forecast months | February–April 2018 |
-| Products with data warnings | 54 |
+The generator selects one of three clearly labelled methods:
 
-Each forecasted product has three forecast rows, one for each forecast month. The 64 skipped products did not meet the script's minimum requirement of 12 calendar months of history. Their individual skip reasons are recorded in `outputs/forecasts/forecast_products_skipped.csv`.
+1. **Random Forest (`random_forest_recursive`)** requires a latest run of at
+   least 13 consecutive actual monthly observations. This supports the
+   existing lag-12 feature and at least one supervised training example. The
+   nine existing features and shared configuration (200 estimators, depth 5,
+   random state 42) are retained. The three forecast steps are recursive.
+2. **Moving Average baseline (`moving_average_baseline`)** is used when the
+   RF history requirement is not met but there are at least two observed
+   records. It repeats the mean of up to the latest three actual records.
+   Missing months are not added to that mean.
+3. **Naive baseline (`naive_last_observation_baseline`)** is used for a single
+   observed record. It repeats that actual value and is marked low confidence.
 
-## 4. Data-quality warning and missing-month assumption
+These fallback estimates are simple baselines, not Random Forest predictions,
+and are not validated by the Random Forest historical backtest.
 
-The monthly-demand dataset contains 1,818 recorded product-month rows for 118 products and has no explicit zero-demand rows. The forecast-generation script fills missing product-month records with zero before training the model.
+Every product's `internal_missing_months` counts absent calendar months
+strictly between its first and last actual observation. Random Forest training
+uses only uninterrupted observed runs; baselines use available actual values
+without inserting unknown values. Staleness does not exclude a product:
+`months_since_last_record` records the age at the cutoff, stale predictions
+are marked `STALE_HISTORY_LOW_CONFIDENCE`, and the warning report explains
+that they should not be treated as reliable. Internal gaps and baseline
+methods also generate explicit warnings. These outputs are historical
+demonstrations, not inventory or purchasing recommendations.
 
-The source documentation available during development does **not** confirm that an absent product-month record means zero demand. The meaning of the missing months therefore remains unverified.
+## Data-quality findings
 
-All 54 forecasted products have data warnings because their latest recorded demand month is earlier than the January 2018 forecast cutoff and missing product-month records were treated as zero. Checks against the raw order dataset found no raw orders after each product's last recorded demand month, but this does not establish why orders stopped or prove that the products were discontinued.
+The raw dataset has 180,519 transactions, 118 products, and 37 months. The
+monthly rebuild contains 1,818 observed product-months. Of 4,366 combinations
+in the full 118-product by 37-month grid, 2,548 are absent and must not be
+assumed to represent zero demand. Ten missing months are internal to observed
+product histories; these are available only in clearly labelled synthetic
+review outputs.
 
-For these reasons:
+Monthly product activity and transaction quantity distributions change
+sharply in late 2017. This indicates a source-data regime change but does not
+establish that real demand collapsed. See
+`data/quality_review/DATA_QUALITY_REPORT.md` and
+`outputs/forecasts/data_quality_summary.csv`.
 
-1. Treat the forecasts as experimental historical outputs, not current operational recommendations.
-2. Do not label products as discontinued based only on the absence of later recorded orders.
-3. Keep `forecast_data_warnings.csv` and `forecast_products_skipped.csv` with the forecast file.
-4. Display the forecast period and limitations wherever these forecasts are shown.
-5. Validate the source data's completeness and the zero-demand assumption before using forecasts for inventory or purchasing decisions.
+## Dashboard files
 
-## 5. Files for dashboard integration
-
-The following files are prepared in `outputs/handoff/`:
+The reproducible pipeline writes these files to `outputs/forecasts/`:
 
 | File | Purpose |
 |---|---|
-| `future_demand_forecasts.csv` | Forecast values, forecast months, model metadata, and history metadata |
-| `forecast_products_skipped.csv` | Products not forecasted and the reason for each skip |
-| `forecast_data_warnings.csv` | Product-level warnings about stale history and missing months |
-| `random_forest_model_comparison.csv` | Existing comparison of Naive, Moving Average, and Random Forest |
+| `future_demand_forecasts.csv` | Product/month forecast values, origin, horizon, model metadata, and history quality |
+| `forecast_products_skipped.csv` | Product identifiers and skip reasons |
+| `forecast_data_warnings.csv` | Structured warning rows with category, message, last-observed month, staleness, forecast method, and confidence |
+| `forecast_warning_summary.csv` | Warning and affected-product counts grouped by warning category |
+| `forecast_method_summary.csv` | Product counts by method and forecast-row counts for high/medium/low confidence, including zero-count categories |
+| `random_forest_model_comparison.csv` | Pooled model metrics and historical evaluation period |
+| `random_forest_predictions.csv` | Test actuals and recursive model predictions |
+| `random_forest_per_product_metrics.csv` | Metrics by product and model |
+| `data_quality_summary.csv` | Machine-readable source and missingness summary |
+| `forecast_demonstration.png` | Observed history and forecasts |
+| `model_comparison.png` | Backtest model comparison |
 
-The dashboard should label the forecast period as **February–April 2018** and make the historical nature and data limitations clear. Do not present these forecasts as predictions for the present day.
+The warning CSV contains one row per warned product. The primary warning
+category is mutually exclusive and prioritized as stale history, internal
+missing months, then baseline method. `warning_message` retains every
+applicable warning detail, including baseline-method information for stale
+fallback forecasts. The current counts are 108 stale, 6 baseline-only, and 4
+internal-gap-only products. `forecast_warning_summary.csv` groups product and
+warning counts by the stable categories `STALE_HISTORY`, `BASELINE_METHOD`,
+and `INTERNAL_MISSING_MONTHS`. Forecast consumers can join on `product_id` and
+`forecast_month`. Show forecast origin and historical dates, visually
+distinguish model predictions from fallback estimates, and keep warnings and
+skipped products available to dashboard users. These data cover
+February–April 2018, not the current period.
 
-## 6. Recommended follow-up
+## Reproduce
 
-- Evaluate the `max_depth=5` Random Forest configuration on the same held-out test data used for the baseline comparison.
-- Confirm how missing product-months should be interpreted using authoritative source documentation, if available.
-- Preserve the original raw data and retain the warning and skipped-product reports for reproducibility.
+Install dependencies with `pip install -r requirements.txt`, then run:
+
+```powershell
+python run_pipeline.py
+```
+
+The pipeline rebuilds the observed input and outputs, runs the evaluation and
+forecast stages, generates charts, and stops on a failed stage.

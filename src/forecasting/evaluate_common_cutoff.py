@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from src.data.loaders import load_monthly_demand
 from src.forecasting.baseline import (
     naive_forecast,
     moving_average_forecast,
@@ -12,6 +13,7 @@ from src.forecasting.baseline import (
 from src.forecasting.evaluation import (
     mean_absolute_error,
     root_mean_squared_error,
+    select_products_with_complete_history,
     weighted_absolute_percentage_error,
 )
 
@@ -29,33 +31,8 @@ MOVING_AVERAGE_WINDOW = 3
 
 def main() -> None:
     """Evaluate eligible products over the same six test months."""
-    if not DATA_FILE.exists():
-        raise FileNotFoundError(f"Dataset not found: {DATA_FILE}")
+    df = load_monthly_demand(DATA_FILE)
 
-    df = pd.read_csv(DATA_FILE, parse_dates=["month"])
-
-    required = {"month", "product_id", "demand_units"}
-    missing = required - set(df.columns)
-    if missing:
-        raise ValueError(f"Missing columns: {sorted(missing)}")
-
-    df["demand_units"] = pd.to_numeric(df["demand_units"], errors="raise")
-
-    if df[list(required)].isna().any().any():
-        raise ValueError("Required fields contain missing values.")
-
-    if not df["demand_units"].map(
-        lambda value: pd.notna(value) and abs(value) != float("inf")
-    ).all():
-        raise ValueError("Demand contains non-finite values.")
-
-    if (df["demand_units"] < 0).any():
-        raise ValueError("Negative demand found; investigate before forecasting.")
-
-    if df.duplicated(["product_id", "month"]).any():
-        raise ValueError("Duplicate product-month records found.")
-
-    expected_months = pd.date_range(START_MONTH, TEST_END, freq="MS")
     train_months = pd.date_range(START_MONTH, TRAIN_END, freq="MS")
     test_months = pd.date_range(TEST_START, TEST_END, freq="MS")
 
@@ -65,18 +42,14 @@ def main() -> None:
     period_df = df.loc[
         df["month"].between(START_MONTH, TEST_END)
     ].copy()
+    complete_products = select_products_with_complete_history(
+        period_df,
+        START_MONTH,
+        TEST_END,
+    )
 
-    for product_id, group in period_df.groupby("product_id"):
+    for product_id, group in complete_products.groupby("product_id"):
         group = group.sort_values("month").reset_index(drop=True)
-
-        # Only compare products with a complete common historical window.
-        if (
-            len(group) != len(expected_months)
-            or not group["month"].reset_index(drop=True).equals(
-                pd.Series(expected_months, name="month")
-            )
-        ):
-            continue
 
         demand = group["demand_units"].astype(float)
         train = demand.iloc[:len(train_months)].reset_index(drop=True)

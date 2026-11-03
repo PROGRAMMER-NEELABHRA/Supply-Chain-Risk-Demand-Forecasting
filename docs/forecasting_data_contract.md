@@ -2,44 +2,47 @@
 
 ## Purpose
 
-Define the data required by the demand forecasting pipeline.
+Define the observed monthly-demand input and output contracts for the
+forecasting pipeline.
 
-## Required Fields
+## Raw source fields
 
-| Field | Description | Required |
-|---|---|---|
-| date | Date of demand observation | Yes |
-| product_id | Unique product identifier | Yes |
-| quantity | Demand quantity | Yes |
-| region | Sales region | Preferred |
-| revenue | Revenue generated | Preferred |
+| Field | Description |
+|---|---|
+| `order_date` | Source transaction date; parsed using the source's day-first format and ISO dates |
+| `product_id` | Numeric product identifier |
+| `quantity` | Positive order-item quantity |
+| `order_item_id` | Optional transaction key; duplicates are rejected when present |
 
-## Expected Granularity
+Exact duplicate source rows are rejected. Raw dates and quantities must be
+valid and finite. Duplicate product/month rows are expected at transaction
+granularity and are aggregated; duplicate product/month rows in the monthly
+input are invalid.
 
-The forecasting dataset should contain one observation
-per product per time period.
+## Observed monthly input
 
-## Target Variable
+The forecasting input has one row per observed product and calendar month:
 
-quantity
+| Field | Description |
+|---|---|
+| `month` | Month start (`YYYY-MM-01`) |
+| `product_id` | Product identifier |
+| `demand_units` | Sum of observed transaction quantities |
 
-## Forecasting Frequency
+The rebuilt input is
+`data/quality_review/monthly_demand_observed_rebuilt.csv`. Absent product/month
+rows are unknown, not implicit zero demand. Internal gaps are classified and
+may be included in separate review files with explicit synthetic labels; they
+are excluded from model training and evaluation.
 
-To be determined after dataset inspection.
+## Forecast output
 
-## Forecast Horizon
+`outputs/forecasts/future_demand_forecasts.csv` contains one row per forecast
+product/month, including `forecast_demand`, `forecast_origin_month`,
+`forecast_horizon_month`, model configuration, observed-history metadata, and
+`data_quality_status`. Forecast values must be finite and nonnegative.
 
-To be determined after dataset inspection.
-
-## Required Data Quality
-
-- Date must be valid.
-- Product ID must not be null.
-- Quantity must be numeric.
-- Duplicate observations must be investigated.
-- Missing demand values must be handled explicitly.
-
-## Notes
-
-Final fields and granularity will be confirmed after
-the source dataset is reviewed.
+Every ineligible product appears in `forecast_products_skipped.csv` with a
+reason. Data-quality warnings are written separately to
+`forecast_data_warnings.csv`; dashboard consumers should surface them rather
+than hiding those records.

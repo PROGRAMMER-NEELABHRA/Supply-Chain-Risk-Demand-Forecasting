@@ -5,13 +5,18 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 
 
+RANDOM_FOREST_N_ESTIMATORS = 200
+RANDOM_FOREST_MAX_DEPTH = 5
+RANDOM_FOREST_RANDOM_STATE = 42
+
+
 def train_random_forest(
     X_train: pd.DataFrame,
     y_train: pd.Series,
     *,
-    n_estimators: int = 200,
-    max_depth: int = 10,
-    random_state: int = 42,
+    n_estimators: int = RANDOM_FOREST_N_ESTIMATORS,
+    max_depth: int = RANDOM_FOREST_MAX_DEPTH,
+    random_state: int = RANDOM_FOREST_RANDOM_STATE,
 ) -> RandomForestRegressor:
     """Train a Random Forest regression model on demand features."""
     if X_train.empty or y_train.empty:
