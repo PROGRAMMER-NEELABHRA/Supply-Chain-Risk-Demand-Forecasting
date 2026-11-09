@@ -146,6 +146,7 @@ def inject_css(theme: str | None = None) -> None:
     t = get_theme_tokens(theme)
     is_dark = t["name"] == "dark"
     shadow_card = "0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3)" if is_dark else "0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04)"
+    brand_glow = "0 0 16px rgba(59, 130, 246, 0.4)" if is_dark else "none"
 
     css = f"""
     <style>
@@ -366,29 +367,129 @@ def inject_css(theme: str | None = None) -> None:
     .badge-red    {{ background: rgba(239,68,68,{t['badge_bg_opacity']}); color: var(--danger-red); border: 1px solid rgba(239,68,68,0.3); }}
     .badge-muted  {{ background: rgba(148,163,184,{t['badge_bg_opacity']}); color: var(--text-muted); border: 1px solid var(--border-color); }}
 
-    /* Sidebar Brand Area */
-    .sidebar-brand {{
-        padding: 0.5rem 0 1rem 0;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 1.25rem;
-    }}
-    .sidebar-brand-title {{
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        letter-spacing: -0.02em;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }}
-    .sidebar-brand-subtitle {{
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        margin-top: 2px;
-        font-weight: 400;
+    /* ── Application Top Header ───────────────────────────────────── */
+    [data-testid="stHeader"] {{
+        background-color: var(--bg-card) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        z-index: 9999 !important;
+        height: 56px !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        box-sizing: border-box !important;
     }}
 
-    /* Top-Right Theme Switcher */
+    /* ── Header Brand Identity (App Name) ─────────────────────────── */
+    /* Prominently displayed identity on the top header, NOT a button */
+    [data-testid="stHeader"]::after {{
+        content: "Supply Chain Platform" !important;
+        position: absolute !important;
+        left: 58px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+        color: var(--text-primary) !important;
+        letter-spacing: -0.02em !important;
+        text-shadow: {brand_glow} !important;
+        white-space: nowrap !important;
+        pointer-events: none !important;
+        user-select: none !important;
+        z-index: 1000 !important;
+    }}
+
+    /* Prevent duplicate brand text on stHeader when the sidebar is expanded */
+    [data-testid="stAppViewContainer"]:has([data-testid="stSidebar"][aria-expanded="true"]) [data-testid="stHeader"]::after {{
+        display: none !important;
+    }}
+
+    /* ── Gmail-Style Hamburger Button (strictly the 3 bars) ───────── */
+    /* Hide the default Streamlit chevron icons (>> and <<) */
+    [data-testid="stExpandSidebarButton"] span,
+    [data-testid="stExpandSidebarButton"] svg,
+    [data-testid="stSidebarCollapseButton"] span,
+    [data-testid="stSidebarCollapseButton"] svg {{
+        display: none !important;
+    }}
+
+    /* Expand button (sidebar collapsed) & collapse button (sidebar open) */
+    [data-testid="stExpandSidebarButton"],
+    [data-testid="stSidebarCollapseButton"] button {{
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        border-radius: 6px !important;
+        transition: background-color 0.15s ease !important;
+    }}
+
+    [data-testid="stExpandSidebarButton"]:hover,
+    [data-testid="stSidebarCollapseButton"] button:hover {{
+        background-color: var(--bg-card-secondary) !important;
+    }}
+
+    /* 3-horizontal-line Gmail Hamburger Icon */
+    [data-testid="stExpandSidebarButton"]::before,
+    [data-testid="stSidebarCollapseButton"] button::before {{
+        content: "" !important;
+        display: inline-block !important;
+        width: 20px !important;
+        height: 2px !important;
+        background: var(--text-primary) !important;
+        box-shadow: 0 -6px 0 0 var(--text-primary), 0 6px 0 0 var(--text-primary) !important;
+        border-radius: 1px !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+    }}
+
+    /* Strip any pseudo-elements from buttons so they never include text or click targets */
+    [data-testid="stExpandSidebarButton"]::after,
+    [data-testid="stSidebarCollapseButton"] button::after {{
+        display: none !important;
+        content: "" !important;
+    }}
+
+    /* ── Sidebar Header Spacing & Identity when Expanded ──────────── */
+    [data-testid="stSidebarHeader"] {{
+        position: relative !important;
+        padding: 8px 14px !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        margin-bottom: 8px !important;
+        height: 56px !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        align-items: center !important;
+    }}
+
+    [data-testid="stSidebarHeader"]::after {{
+        content: "Supply Chain Platform" !important;
+        position: absolute !important;
+        left: 58px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+        color: var(--text-primary) !important;
+        letter-spacing: -0.02em !important;
+        text-shadow: {brand_glow} !important;
+        white-space: nowrap !important;
+        pointer-events: none !important;
+        user-select: none !important;
+    }}
+
+    /* ── Pinned Top-Right Theme Switcher ──────────────────────────── */
     .st-key-top_right_theme {{
         position: fixed !important;
         top: 10px !important;

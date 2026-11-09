@@ -14,7 +14,6 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 import streamlit as st
 
-from dashboard.components.sidebar import render_sidebar_header, render_top_theme_toggle
 from dashboard.styles.theme import get_current_theme, inject_css
 
 # Page configuration (MUST be executed once at app root)
@@ -27,12 +26,6 @@ st.set_page_config(
 
 # Apply active theme CSS variables
 inject_css()
-
-# Render unified sidebar branding
-render_sidebar_header()
-
-# Render top-right theme toggle
-render_top_theme_toggle()
 
 # Define navigation structure with st.Page
 overview_pages = [
