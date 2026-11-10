@@ -2,6 +2,7 @@
 
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.colors import hex_to_rgb
 import streamlit as st
 
 from dashboard.components.kpi_cards import kpi_row, page_header, under_development_banner
@@ -20,6 +21,12 @@ warnings_df = load_forecast_data_warnings()
 warning_summary = load_forecast_warning_summary()
 forecasts = load_future_forecasts()
 t = get_theme_tokens()
+
+
+def _rgba(color: str, opacity: float) -> str:
+    """Return a Plotly-compatible translucent version of a theme color."""
+    red, green, blue = hex_to_rgb(color)
+    return f"rgba({red},{green},{blue},{opacity})"
 
 # ---------------------------------------------------------------------------
 # Page Header
@@ -123,9 +130,9 @@ with col_gauge:
                 "axis": {"range": [0, 100], "tickcolor": t["text_muted"], "tickfont": {"size": 10}},
                 "bar": {"color": t["danger_red"]},
                 "steps": [
-                    {"range": [0, 33], "color": "rgba(16,185,129,0.15)"},
-                    {"range": [33, 66], "color": "rgba(245,158,11,0.15)"},
-                    {"range": [66, 100], "color": "rgba(239,68,68,0.15)"},
+                    {"range": [0, 33], "color": _rgba(t["accent_green"], 0.15)},
+                    {"range": [33, 66], "color": _rgba(t["accent_orange"], 0.15)},
+                    {"range": [66, 100], "color": _rgba(t["danger_red"], 0.15)},
                 ],
                 "threshold": {
                     "line": {"color": t["accent_orange"], "width": 2},

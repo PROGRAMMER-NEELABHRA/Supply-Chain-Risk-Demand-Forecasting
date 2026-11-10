@@ -5,39 +5,11 @@ from __future__ import annotations
 from typing import Optional
 import pandas as pd
 import streamlit as st
-from dashboard.styles.theme import get_current_theme, get_theme_tokens  # noqa: F401
 
 
 def render_sidebar_header() -> None:
     """No-op: Application title and theme toggle are removed from the navigation menu."""
     pass
-
-
-def render_top_theme_toggle() -> None:
-    """Render a sleek, compact theme toggle pinned in the top right corner."""
-    current_theme = get_current_theme()
-    is_dark = current_theme == "dark"
-
-    with st.container(key="top_right_theme"):
-        col1, col2 = st.columns([1, 1], gap="small")
-        with col1:
-            if st.button(
-                "🌙 Dark",
-                key="tr_toggle_dark_btn",
-                type="primary" if is_dark else "secondary",
-            ):
-                if current_theme != "dark":
-                    st.session_state["theme"] = "dark"
-                    st.rerun()
-        with col2:
-            if st.button(
-                "☀️ Light",
-                key="tr_toggle_light_btn",
-                type="primary" if not is_dark else "secondary",
-            ):
-                if current_theme != "light":
-                    st.session_state["theme"] = "light"
-                    st.rerun()
 
 
 # Backwards compatibility alias

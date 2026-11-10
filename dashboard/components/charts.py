@@ -19,9 +19,10 @@ from dashboard.styles.theme import (
 
 
 def _apply_layout(fig: go.Figure, title: str = "", **kwargs) -> go.Figure:
-    """Apply the dynamic theme-aware layout to a Plotly figure."""
+    """Apply the active theme to every Plotly chart."""
     t = get_theme_tokens()
-    layout = get_plotly_layout()
+    layout = get_plotly_layout(t["name"])
+
     if title:
         layout["title"] = dict(
             text=title,
@@ -34,10 +35,10 @@ def _apply_layout(fig: go.Figure, title: str = "", **kwargs) -> go.Figure:
             xanchor="left",
             pad=dict(l=4, t=8),
         )
+
     layout.update(kwargs)
     fig.update_layout(**layout)
     return fig
-
 
 # ---------------------------------------------------------------------------
 # Demand charts

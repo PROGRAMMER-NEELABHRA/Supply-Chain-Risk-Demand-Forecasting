@@ -1,0 +1,321 @@
+/* Shared dashboard styles. Theme variables come from theme.py. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Theme tokens use the color scheme selected by Streamlit's native menu. */
+.stApp {
+    --bg-app: light-dark(#F8FAFC, #0A1628);
+    --bg-sidebar: light-dark(#FFFFFF, #0D1F3C);
+    --bg-card: light-dark(#FFFFFF, #111E35);
+    --bg-card-secondary: light-dark(#F1F5F9, #162544);
+    --border-color: light-dark(#E2E8F0, #1E3A5F);
+    --border-subtle: light-dark(#EDF2F7, #172A45);
+    --text-primary: light-dark(#0F172A, #F1F5F9);
+    --text-muted: light-dark(#64748B, #94A3B8);
+    --text-dim: light-dark(#94A3B8, #64748B);
+    --accent-blue: light-dark(#2563EB, #3B82F6);
+    --accent-green: light-dark(#059669, #10B981);
+    --accent-purple: light-dark(#7C3AED, #8B5CF6);
+    --accent-orange: light-dark(#D97706, #F59E0B);
+    --danger-red: light-dark(#DC2626, #EF4444);
+    --shadow-card: 0 1px 3px light-dark(rgba(0,0,0,.06), rgba(0,0,0,.30)),
+                   0 1px 2px light-dark(rgba(0,0,0,.04), rgba(0,0,0,.30));
+    background: var(--bg-app) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Base and header */
+html, body {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+[data-testid="stAppViewContainer"] {
+    background: var(--bg-app) !important;
+    color: var(--text-primary) !important;
+}
+[data-testid="stHeader"] {
+    position: fixed !important; inset: 0 0 auto; height: 56px !important;
+    box-sizing: border-box !important; z-index: 9999 !important;
+    background: var(--bg-card) !important; border-bottom: 1px solid var(--border-color) !important;
+}
+[data-testid="stHeader"]::after {
+    content: "Supply Chain Platform"; position: absolute; left: 58px; top: 50%;
+    transform: translateY(-50%); color: var(--text-primary); font-size: 1.15rem;
+    font-weight: 700; letter-spacing: -.02em; white-space: nowrap; pointer-events: none;
+}
+
+/* Native hamburger */
+[data-testid="stExpandSidebarButton"] span,
+[data-testid="stExpandSidebarButton"] svg,
+[data-testid="stSidebarCollapseButton"] span,
+[data-testid="stSidebarCollapseButton"] svg { display: none !important; }
+[data-testid="stExpandSidebarButton"],
+[data-testid="stSidebarCollapseButton"] button {
+    display: inline-flex !important; align-items: center !important; justify-content: center !important;
+    width: 36px !important; min-width: 36px !important; height: 36px !important;
+    padding: 0 !important; border: 0 !important; border-radius: 6px !important;
+    background: transparent !important; box-shadow: none !important;
+}
+[data-testid="stExpandSidebarButton"]::before,
+[data-testid="stSidebarCollapseButton"] button::before {
+    content: ""; display: block; width: 20px; height: 2px; border-radius: 1px;
+    background: var(--text-primary); box-shadow: 0 -6px 0 var(--text-primary), 0 6px 0 var(--text-primary);
+}
+[data-testid="stExpandSidebarButton"]:hover,
+[data-testid="stSidebarCollapseButton"] button:hover { background: var(--bg-card-secondary) !important; }
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    width: 280px !important; min-width: 280px !important; max-width: 280px !important;
+    background: var(--bg-sidebar) !important; border-right: 1px solid var(--border-color) !important;
+}
+[data-testid="stSidebar"] * { color: var(--text-primary); }
+[data-testid="stSidebar"] {
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+    box-sizing: border-box !important;
+    background: var(--bg-sidebar) !important;
+    border-right: 1px solid var(--border-color) !important;
+}
+
+[data-testid="stSidebar"][data-collapsed="true"] {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+}
+
+[data-testid="stSidebar"] > div {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    min-width: 0 !important;
+}
+/* Main content */
+[data-testid="stMainBlockContainer"] {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 1.5rem clamp(0.75rem, 1.5vw, 1.5rem) !important;
+    box-sizing: border-box !important;
+}
+
+/* Keep KPI cards readable and stack chart rows when the content area narrows. */
+@media (max-width: 1100px) {
+    [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) {
+        flex-wrap: wrap !important;
+    }
+    [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) > [data-testid="stColumn"] {
+        flex: 1 1 calc(50% - 0.75rem) !important;
+        width: calc(50% - 0.75rem) !important;
+        max-width: calc(50% - 0.75rem) !important;
+        min-width: 0 !important;
+    }
+}
+
+@media (max-width: 900px) {
+    [data-testid="stHorizontalBlock"]:not(:has([data-testid="stMetric"])) {
+        flex-wrap: wrap !important;
+    }
+    [data-testid="stHorizontalBlock"]:not(:has([data-testid="stMetric"])) > [data-testid="stColumn"] {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
+@media (max-width: 640px) {
+    [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) > [data-testid="stColumn"] {
+        flex-basis: 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* KPI cards */
+[data-testid="stMetric"] {
+    padding: 1rem 1.25rem !important; background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important; border-radius: 8px !important;
+    box-shadow: var(--shadow-card); transition: border-color .15s ease, box-shadow .15s ease;
+}
+[data-testid="stMetric"]:hover { border-color: var(--accent-blue) !important; }
+[data-testid="stMetricLabel"] {
+    color: var(--text-muted) !important; font-size: .75rem !important; font-weight: 600 !important;
+    letter-spacing: .05em !important; text-transform: uppercase !important;
+}
+[data-testid="stMetricValue"] {
+    color: var(--text-primary) !important; font-size: 1.6rem !important;
+    font-weight: 700 !important; letter-spacing: -.02em !important;
+}
+[data-testid="stMetricDelta"] { font-size: .8rem !important; }
+
+/* Typography */
+h1, h2, h3 { color: var(--text-primary) !important; }
+h1 { margin-bottom: .25rem !important; font-size: 1.65rem !important; font-weight: 700 !important; }
+h2 { margin: 1.25rem 0 .5rem !important; font-size: 1.25rem !important; font-weight: 600 !important; }
+h3 { margin-bottom: .5rem !important; font-size: 1.05rem !important; font-weight: 600 !important; }
+hr { margin: 1.25rem 0 !important; border-color: var(--border-color) !important; }
+
+/* Charts and tables */
+[data-testid="stPlotlyChart"] {
+    overflow: hidden !important; background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important; border-radius: 8px !important;
+    box-shadow: var(--shadow-card);
+}
+[data-testid="stDataFrame"] {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important; border-radius: 8px !important;
+    box-shadow: var(--shadow-card);
+}
+[data-testid="stTable"] table,
+[data-testid="stTable"] th,
+[data-testid="stTable"] td {
+    background: var(--bg-card) !important; color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Form labels */
+[data-testid="stSelectbox"] label, [data-testid="stMultiSelect"] label,
+[data-testid="stSlider"] label, [data-testid="stRadio"] label {
+    color: var(--text-muted) !important; font-size: .8rem !important; font-weight: 600 !important;
+}
+
+/* Selectbox and multiselect controls follow the native theme tokens. */
+[data-testid="stSelectbox"] [role="combobox"] {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: none !important;
+}
+[data-testid="stSelectbox"] [role="combobox"] svg {
+    color: var(--text-muted) !important;
+    fill: currentColor !important;
+}
+[data-testid="stMultiSelect"] div[role="group"]:has(> [data-testid="stMultiSelectTagsContainer"]) {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: none !important;
+}
+[data-testid="stMultiSelectTagsContainer"] {
+    background: transparent !important;
+}
+[data-testid="stMultiSelectTagsContainer"] span[aria-label]:not([aria-label="Selected values"]):has(> [title]) {
+    background: color-mix(in srgb, var(--accent-blue) 18%, var(--bg-card)) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+}
+[data-testid="stMultiSelectTagsContainer"] [title] {
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+}
+[data-testid="stMultiSelect"] input[role="combobox"] {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+[data-testid="stMultiSelect"] button[aria-label^="Remove "] {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+[data-testid="stMultiSelect"] button[aria-label="Clear all"],
+[data-testid="stMultiSelect"] button[aria-label="Open"] {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+[data-testid="stMultiSelect"] button svg {
+    color: currentColor !important;
+    fill: currentColor !important;
+}
+
+/* Dropdown popup is rendered outside the widget */
+[data-baseweb="popover"], [data-baseweb="menu"], [role="listbox"] {
+    background: var(--bg-card) !important; color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+[role="option"] { background: var(--bg-card) !important; color: var(--text-primary) !important; }
+[role="option"]:hover, [role="option"][aria-selected="true"] {
+    background: var(--bg-card-secondary) !important; color: var(--text-primary) !important;
+}
+[data-testid="stMultiSelect"] [data-baseweb="tag"] {
+    background: var(--bg-card-secondary) !important; color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+[data-testid="stMultiSelect"] [data-baseweb="tag"] * { color: var(--text-primary) !important; }
+
+/* Text, number, date and multiline inputs */
+[data-testid="stTextInput"] input, [data-testid="stNumberInput"] input,
+[data-testid="stDateInput"] input, [data-testid="stTextArea"] textarea {
+    background: var(--bg-card) !important; color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+[data-testid="stSlider"] { color: var(--text-primary) !important; }
+
+/* Tabs and alerts */
+[data-testid="stTabs"] [role="tab"] {
+    color: var(--text-muted) !important; font-size: .9rem !important; font-weight: 500 !important;
+}
+[data-testid="stTabs"] [role="tab"][aria-selected="true"] {
+    color: var(--accent-blue) !important; border-bottom-color: var(--accent-blue) !important;
+    font-weight: 600 !important;
+}
+[data-testid="stAlert"] {
+    border: 1px solid var(--border-color) !important; border-radius: 8px !important;
+    font-size: .88rem !important;
+}
+
+/* Reusable HTML cards */
+.ent-card {
+    margin-bottom: 1rem; padding: 1.25rem; background: var(--bg-card);
+    border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-card);
+}
+.ent-card-header {
+    display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem;
+    color: var(--text-primary); font-size: .9rem; font-weight: 600;
+}
+.ent-card-subtitle { margin-bottom: .75rem; color: var(--text-muted); font-size: .8rem; }
+
+/* Development banner */
+.dev-status-banner {
+    margin-bottom: 1.25rem; padding: 1.25rem 1.5rem; background: var(--bg-card);
+    border: 1px solid var(--border-color); border-left: 4px solid var(--accent-orange);
+    border-radius: 8px; box-shadow: var(--shadow-card);
+}
+.dev-status-title {
+    display: flex; align-items: center; gap: .5rem; margin-bottom: .35rem;
+    color: var(--accent-orange); font-size: .95rem; font-weight: 700;
+}
+.dev-status-body { margin: 0; color: var(--text-muted); font-size: .85rem; line-height: 1.5; }
+
+/* Status badges */
+.badge {
+    display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px;
+    font-size: .72rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+}
+.badge-green { background: color-mix(in srgb, var(--accent-green) 14%, transparent); color: var(--accent-green); border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent); }
+.badge-blue { background: color-mix(in srgb, var(--accent-blue) 14%, transparent); color: var(--accent-blue); border: 1px solid color-mix(in srgb, var(--accent-blue) 35%, transparent); }
+.badge-orange { background: color-mix(in srgb, var(--accent-orange) 14%, transparent); color: var(--accent-orange); border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent); }
+.badge-red { background: color-mix(in srgb, var(--danger-red) 14%, transparent); color: var(--danger-red); border: 1px solid color-mix(in srgb, var(--danger-red) 35%, transparent); }
+.badge-muted { background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted); border: 1px solid var(--border-color); }
+
+/* Appearance popover */
+[data-testid="stPopover"],
+[data-testid="stPopoverBody"],
+[data-testid="stPopoverBody"] > div {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-testid="stPopoverBody"] label,
+[data-testid="stPopoverBody"] [data-testid="stMarkdownContainer"] {
+    color: var(--text-primary) !important;
+}
+

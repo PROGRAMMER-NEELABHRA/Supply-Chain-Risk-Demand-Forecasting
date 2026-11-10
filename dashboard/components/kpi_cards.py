@@ -85,7 +85,8 @@ def under_development_banner(
     if disclaimer:
         disclaimer_html = (
             f'<div style="margin-top:0.75rem;padding:0.6rem 0.85rem;'
-            f'background:rgba(245,158,11,0.08);border-radius:6px;border-left:3px solid var(--accent-orange);'
+            f'background:color-mix(in srgb,var(--accent-orange) 8%,transparent);'
+            f'border-radius:6px;border-left:3px solid var(--accent-orange);'
             f'font-size:0.8rem;color:var(--text-muted);">'
             f'<strong>Governance Notice:</strong> {disclaimer}</div>'
         )

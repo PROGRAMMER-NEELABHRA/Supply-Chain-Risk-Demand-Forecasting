@@ -14,14 +14,17 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 import streamlit as st
 
-from dashboard.styles.theme import get_current_theme, inject_css
+from dashboard.styles.theme import inject_css
 
 # Page configuration (MUST be executed once at app root)
+from dashboard.components.navigation_drawer import render_navigation_drawer
+
+
 st.set_page_config(
     page_title="Supply Chain Demand Platform",
     page_icon="📦",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # Apply active theme CSS variables
@@ -79,5 +82,10 @@ navigation_dict = {
     "OPERATIONS": operations_pages,
 }
 
-pg = st.navigation(navigation_dict)
+pg = st.navigation(
+    navigation_dict,
+    position="hidden",
+)
+
+render_navigation_drawer()
 pg.run()

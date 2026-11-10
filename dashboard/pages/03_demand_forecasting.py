@@ -134,9 +134,9 @@ if not prod_fc.empty:
 
         def _fmt_confidence(val: str) -> str:
             mapping = {
-                "HIGH": "color: #10B981; font-weight: 600;",
-                "MEDIUM": "color: #F59E0B; font-weight: 600;",
-                "LOW": "color: #EF4444; font-weight: 600;",
+                "HIGH": "color: var(--accent-green); font-weight: 600;",
+                "MEDIUM": "color: var(--accent-orange); font-weight: 600;",
+                "LOW": "color: var(--danger-red); font-weight: 600;",
             }
             return mapping.get(val, "")
 
