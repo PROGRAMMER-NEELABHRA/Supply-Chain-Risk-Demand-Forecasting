@@ -5,5 +5,5 @@ seaborn
 scikit-learn
 openpyxl
 pytest
-streamlit>=1.35.0
+streamlit>=1.51.0
 plotly>=5.22.0
