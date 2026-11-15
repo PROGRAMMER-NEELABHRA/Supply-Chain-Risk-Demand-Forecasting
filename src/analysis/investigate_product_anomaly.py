@@ -1,16 +1,22 @@
 
 """Investigate an unusual monthly demand value in the raw data."""
 
-from pathlib import Path
-
 import pandas as pd
 
+from config import DATACO_RAW_DATA_FILE
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_FILE = PROJECT_ROOT / "data" / "raw" / "integrated_supply_chain.csv"
+
+DATA_FILE = DATACO_RAW_DATA_FILE
 
 PRODUCT_ID = 365
-ANOMALY_MONTH = "2017-10"
+
+
+def latest_observed_product_month(months: pd.Series) -> pd.Period:
+    """Return the latest month with an actual observation for a product."""
+    observed = months.dropna()
+    if observed.empty:
+        raise ValueError("No valid product observations are available.")
+    return observed.max()
 
 
 def main() -> None:
@@ -25,6 +31,11 @@ def main() -> None:
     product = df.loc[df["product_id"] == PRODUCT_ID].copy()
     product = product.dropna(subset=["order_date", "quantity"])
     product["month"] = product["order_date"].dt.to_period("M")
+    if product.empty:
+        raise ValueError(
+            f"No valid observations are available for product {PRODUCT_ID}."
+        )
+    latest_observed_month = latest_observed_product_month(product["month"])
 
     monthly = (
         product.groupby("month")
@@ -42,10 +53,10 @@ def main() -> None:
     print(monthly.tail(8).to_string(index=False))
 
     anomaly = product.loc[
-        product["month"] == pd.Period(ANOMALY_MONTH, freq="M")
+        product["month"] == latest_observed_month
     ]
 
-    print(f"\n=== RAW RECORDS FOR {ANOMALY_MONTH} ===")
+    print(f"\n=== RAW RECORDS FOR {latest_observed_month} ===")
     print(f"Order-item rows: {len(anomaly)}")
     print(f"Total quantity: {anomaly['quantity'].sum():,.0f}")
 

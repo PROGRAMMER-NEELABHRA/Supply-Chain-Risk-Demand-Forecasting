@@ -19,6 +19,7 @@ from dashboard.data.loader import (
     load_rf_feature_importance,
     load_rf_model_comparison,
     load_rf_per_product_metrics,
+    load_monthly_demand,
 )
 
 # ---------------------------------------------------------------------------
@@ -32,6 +33,11 @@ feature_importance = load_rf_feature_importance()
 rf_comparison = load_rf_model_comparison()
 later_summary = load_later_period_model_summary()
 later_per_product = load_later_period_per_product()
+demand = load_monthly_demand()
+test_end = demand["month"].max()
+test_start = pd.Timestamp("2017-05-01")
+later_product_count = int(later_per_product["product_id"].nunique())
+portfolio_product_count = int(demand["product_id"].nunique())
 
 # ---------------------------------------------------------------------------
 # Sidebar Filters
@@ -110,7 +116,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "Benchmark Comparison",
     "Feature Importance",
     "Per-Product Error Distribution",
-    "Regime Transition (Later Period)",
+    f"Rolling Evaluation ({test_start:%b}–{test_end:%b %Y})",
 ])
 
 # ── Tab 1: Benchmark comparison ─────────────────────────────────────────────
@@ -216,10 +222,14 @@ with tab3:
 # ── Tab 4: Later period regime ───────────────────────────────────────────────
 
 with tab4:
-    st.warning(
-        "**Source Regime Shift Notice:** Observations post-2017 feature substantial structural changes "
-        "in transactional reporting. Model metrics evaluated in this window must be interpreted with caution.",
-        icon="⚠️",
+    st.info(
+        f"One-step-ahead rolling evaluation: {test_start:%b %Y}–"
+        f"{test_end:%b %Y}. The Random Forest was trained through Apr 2017; "
+        "actual demand from completed test months is available at each "
+        f"subsequent forecast step. The complete-history cohort includes "
+        f"{later_product_count} of {portfolio_product_count} products, so "
+        "these results are not portfolio-wide; no "
+        "observations after the source cutoff are included."
     )
 
     col_a, col_b = st.columns(2, gap="medium")

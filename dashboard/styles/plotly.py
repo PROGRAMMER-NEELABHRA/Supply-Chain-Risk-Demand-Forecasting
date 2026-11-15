@@ -17,8 +17,9 @@ def get_plotly_layout(theme: str | None = None) -> dict:
         "zerolinecolor": colors["grid_color"],
     }
     return {
-        "paper_bgcolor": "rgba(0,0,0,0)",
+        "paper_bgcolor": colors["bg_card"],
         "plot_bgcolor": colors["plot_bg"],
+        "colorway": colors["chart_series"],
         "font": {
             "family": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
             "color": colors["text_primary"],
@@ -31,8 +32,15 @@ def get_plotly_layout(theme: str | None = None) -> dict:
             "bgcolor": "rgba(0,0,0,0)",
             "font": {"color": colors["text_primary"], "size": 11},
         },
+        "hoverlabel": {
+            "bgcolor": colors["bg_card_secondary"],
+            "bordercolor": colors["border_color"],
+            "font": {"color": colors["text_primary"]},
+        },
     }
 
 
-PLOTLY_LAYOUT = get_plotly_layout("dark")
-PLOTLY_TEMPLATE = "plotly_dark"
+# Backward-compatible defaults use the active native theme when imported.
+PLOTLY_LAYOUT = get_plotly_layout()
+# Colors are supplied by PLOTLY_LAYOUT; keep the base template neutral.
+PLOTLY_TEMPLATE = "plotly"

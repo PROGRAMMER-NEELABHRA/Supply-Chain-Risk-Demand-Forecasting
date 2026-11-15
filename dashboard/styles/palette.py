@@ -1,51 +1,105 @@
-"""Color tokens and backward-compatible palette constants."""
+"""Shared Graphite + Emerald tokens for native light and dark appearances."""
+
+HISTORICAL_DEMAND = "#527D69"
+FORECAST = "#21A179"
+COMPARISON = "#8BC9A5"
+HEALTHY = "#21A179"
+WARNING = "#E5A642"
+CRITICAL = "#D95D5D"
+SECONDARY_COMPARISON = "#8B83F6"
 
 THEMES = {
-    "dark": {
-        "name": "dark",
-        "bg_app": "#0A1628",
-        "bg_sidebar": "#0D1F3C",
-        "bg_card": "#111E35",
-        "bg_card_secondary": "#162544",
-        "border_color": "#1E3A5F",
-        "border_subtle": "#172A45",
-        "text_primary": "#F1F5F9",
-        "text_muted": "#94A3B8",
-        "text_dim": "#64748B",
-        "accent_blue": "#3B82F6",
-        "accent_green": "#10B981",
-        "accent_purple": "#8B5CF6",
-        "accent_orange": "#F59E0B",
-        "danger_red": "#EF4444",
-        "plot_bg": "rgba(17, 30, 53, 0.7)",
-        "grid_color": "#1E3A5F",
-        "hover_border": "#3B82F6",
-        "shadow_card": "0 1px 3px rgba(0,0,0,.30), 0 1px 2px rgba(0,0,0,.30)",
-    },
     "light": {
         "name": "light",
-        "bg_app": "#F8FAFC",
+        "bg_app": "#F4F7F5",
         "bg_sidebar": "#FFFFFF",
         "bg_card": "#FFFFFF",
-        "bg_card_secondary": "#F1F5F9",
-        "border_color": "#E2E8F0",
-        "border_subtle": "#EDF2F7",
-        "text_primary": "#0F172A",
-        "text_muted": "#64748B",
-        "text_dim": "#94A3B8",
-        "accent_blue": "#2563EB",
-        "accent_green": "#059669",
-        "accent_purple": "#7C3AED",
-        "accent_orange": "#D97706",
-        "danger_red": "#DC2626",
+        "bg_card_secondary": "#E8EFEB",
+        "border_color": "#D9E3DD",
+        "border_subtle": "#D9E3DD",
+        "text_primary": "#17231E",
+        "text_muted": "#718078",
+        "text_dim": "#718078",
+        "text_sidebar": "#1D3329",
+        "sidebar_accent": "#1D3329",
+        "primary_accent": FORECAST,
+        "accent_blue": HISTORICAL_DEMAND,
+        "accent_green": HEALTHY,
+        "accent_purple": SECONDARY_COMPARISON,
+        "accent_orange": WARNING,
+        "highlight_gold": "#1D3329",
+        "danger_red": CRITICAL,
+        "historical_demand": HISTORICAL_DEMAND,
+        "forecast": FORECAST,
+        "comparison": COMPARISON,
+        "healthy": HEALTHY,
+        "warning": WARNING,
+        "critical": CRITICAL,
+        "secondary_comparison": SECONDARY_COMPARISON,
+        "button_primary_text": "#17231E",
         "plot_bg": "#FFFFFF",
-        "grid_color": "#E2E8F0",
-        "hover_border": "#2563EB",
-        "shadow_card": "0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04)",
+        "grid_color": "#D9E3DD",
+        "hover_border": FORECAST,
+        "shadow_card": "0 1px 3px rgba(23,35,30,.10), 0 1px 2px rgba(23,35,30,.06)",
+        "heatmap_low": "#F4F7F5",
+        "heatmap_mid": COMPARISON,
+        "heatmap_high": HISTORICAL_DEMAND,
+        "fill_blue": "rgba(82,125,105,.12)",
+        "fill_purple": "rgba(139,131,246,.16)",
+        "chart_series": [
+            HISTORICAL_DEMAND,
+            FORECAST,
+            COMPARISON,
+            SECONDARY_COMPARISON,
+        ],
+    },
+    "dark": {
+        "name": "dark",
+        "bg_app": "#171C1B",
+        "bg_sidebar": "#111715",
+        "bg_card": "#222B28",
+        "bg_card_secondary": "#34443C",
+        "border_color": "#3A4840",
+        "border_subtle": "#3A4840",
+        "text_primary": "#F3F6F3",
+        "text_muted": "#A2B0A7",
+        "text_dim": "#A2B0A7",
+        "text_sidebar": "#F3F6F3",
+        "sidebar_accent": FORECAST,
+        "primary_accent": FORECAST,
+        "accent_blue": HISTORICAL_DEMAND,
+        "accent_green": HEALTHY,
+        "accent_purple": SECONDARY_COMPARISON,
+        "accent_orange": WARNING,
+        "highlight_gold": FORECAST,
+        "danger_red": CRITICAL,
+        "historical_demand": HISTORICAL_DEMAND,
+        "forecast": FORECAST,
+        "comparison": COMPARISON,
+        "healthy": HEALTHY,
+        "warning": WARNING,
+        "critical": CRITICAL,
+        "secondary_comparison": SECONDARY_COMPARISON,
+        "button_primary_text": "#171C1B",
+        "plot_bg": "#222B28",
+        "grid_color": "#3A4840",
+        "hover_border": FORECAST,
+        "shadow_card": "0 1px 3px rgba(0,0,0,.30), 0 1px 2px rgba(0,0,0,.22)",
+        "heatmap_low": "#222B28",
+        "heatmap_mid": COMPARISON,
+        "heatmap_high": FORECAST,
+        "fill_blue": "rgba(82,125,105,.20)",
+        "fill_purple": "rgba(139,131,246,.20)",
+        "chart_series": [
+            HISTORICAL_DEMAND,
+            FORECAST,
+            COMPARISON,
+            SECONDARY_COMPARISON,
+        ],
     },
 }
 
-# Existing modules may import these constants directly.
+# Backward-compatible names used by existing dashboard imports.
 NAVY_BG = THEMES["dark"]["bg_app"]
 NAVY_SIDEBAR = THEMES["dark"]["bg_sidebar"]
 CARD_BG = THEMES["dark"]["bg_card"]
@@ -59,17 +113,14 @@ TEXT_PRIMARY = THEMES["dark"]["text_primary"]
 TEXT_MUTED = THEMES["dark"]["text_muted"]
 TEXT_DIM = THEMES["dark"]["text_dim"]
 
-COLOUR_SEQUENCE = [
-    ACCENT_BLUE, ACCENT_GREEN, ACCENT_ORANGE, ACCENT_PURPLE,
-    DANGER_RED, "#06B6D4", "#F472B6", "#A3E635",
-]
+COLOUR_SEQUENCE = THEMES["dark"]["chart_series"]
 MODEL_COLOURS = {
-    "Random Forest": ACCENT_GREEN,
-    "Moving Average": ACCENT_BLUE,
-    "Naive": ACCENT_ORANGE,
+    "Random Forest": THEMES["dark"]["forecast"],
+    "Moving Average": THEMES["dark"]["comparison"],
+    "Naive": THEMES["dark"]["historical_demand"],
 }
 CONFIDENCE_COLOURS = {
-    "HIGH": ACCENT_GREEN,
-    "MEDIUM": ACCENT_ORANGE,
-    "LOW": DANGER_RED,
+    "HIGH": THEMES["dark"]["healthy"],
+    "MEDIUM": THEMES["dark"]["warning"],
+    "LOW": THEMES["dark"]["critical"],
 }

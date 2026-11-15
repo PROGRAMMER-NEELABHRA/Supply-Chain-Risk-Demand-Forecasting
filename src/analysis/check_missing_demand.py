@@ -5,9 +5,11 @@ from pathlib import Path
 
 import pandas as pd
 
+from config import DATACO_RAW_DATA_FILE
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-RAW_FILE = PROJECT_ROOT / "data" / "raw" / "integrated_supply_chain.csv"
+RAW_FILE = DATACO_RAW_DATA_FILE
 MONTHLY_FILE = (
     PROJECT_ROOT / "data" / "processed" / "monthly_demand_observed.csv"
 )

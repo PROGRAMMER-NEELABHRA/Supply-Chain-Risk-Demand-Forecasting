@@ -1,10 +1,8 @@
 """Executive Overview — Strategic enterprise summary of demand and forecast health."""
 
-import pandas as pd
 import streamlit as st
 
 from dashboard.components.charts import (
-    confidence_donut,
     demand_time_series,
     method_donut,
     top_products_bar,
@@ -13,7 +11,6 @@ from dashboard.components.charts import (
 from dashboard.components.kpi_cards import kpi_row, page_header, provenance_expander
 from dashboard.data.loader import (
     load_data_quality_summary,
-    load_demand_shift_analysis,
     load_forecast_method_summary,
     load_forecast_warning_summary,
     load_future_forecasts,
@@ -28,7 +25,6 @@ demand = load_monthly_demand()
 forecasts = load_future_forecasts()
 method_summary = load_forecast_method_summary()
 warning_summary = load_forecast_warning_summary()
-shift_analysis = load_demand_shift_analysis()
 quality_summary = load_data_quality_summary()
 
 # ---------------------------------------------------------------------------
@@ -65,7 +61,6 @@ quality_score = round((1 - stale_count / total_products) * 100, 1)
 qs_val = quality_summary.set_index("metric")["value"].to_dict()
 raw_tx = int(float(qs_val.get("raw_transaction_records", 0)))
 observed_pm = int(float(qs_val.get("observed_product_months", 0)))
-expected_pm = int(float(qs_val.get("expected_full_grid_product_months", 0)))
 
 # ---------------------------------------------------------------------------
 # Page Header
@@ -97,9 +92,12 @@ kpi_row([
         "provenance": "Sum of demand_units",
     },
     {
-        "label": "Historical Coverage",
+        "label": "Portfolio Historical Span",
         "value": coverage_span,
-        "help": "Start to cutoff of continuous historical observation.",
+        "help": (
+            f"The {total_months}-month value is the portfolio calendar span, "
+            "not complete history for every SKU."
+        ),
         "provenance": "data_quality_summary.csv",
     },
 ])
@@ -110,22 +108,34 @@ kpi_row([
     {
         "label": f"Forward 3M Forecast ({forecast_span})",
         "value": f"{total_forecast_demand:,.0f}",
-        "help": "Portfolio projected demand over next 3 calendar months.",
+        "caption": (
+            f"Forecast origin: {demand['month'].max():%b %Y}. "
+            f"Forecast horizon: {forecast_span}."
+        ),
+        "help": (
+            f"Portfolio forecast generated from observed data through "
+            f"{demand['month'].max():%b %Y}."
+        ),
         "provenance": "future_demand_forecasts.csv",
     },
     {
         "label": "Machine Learning Coverage",
         "value": f"{rf_coverage_pct}%",
-        "delta": f"{rf_count}/{total_products} SKUs on RF",
+        "caption": (
+            f"{rf_count:,} of {total_products:,} SKUs "
+            f"({rf_coverage_pct}%) use Random Forest."
+        ),
         "help": "Products satisfying minimum historical threshold to qualify for recursive Random Forest model.",
         "provenance": "forecast_method_summary.csv",
     },
     {
-        "label": "Data Freshness Index",
+        "label": "Not Flagged Stale",
         "value": f"{quality_score}%",
-        "delta": f"-{stale_count} with stale records",
-        "delta_color": "inverse" if stale_count > 0 else "normal",
-        "help": "Percentage of SKUs whose final record extends to cutoff without inactivity gaps.",
+        "caption": f"{stale_count:,} of {total_products:,} SKUs are flagged stale.",
+        "help": (
+            "Share of SKUs not flagged stale at the forecast cutoff; "
+            "this is not a comprehensive data-quality score."
+        ),
         "provenance": "forecast_warning_summary.csv",
     },
 ])
@@ -136,18 +146,27 @@ st.divider()
 # Visual Analytics Row 1: Demand Trend & Top Volume SKUs
 # ---------------------------------------------------------------------------
 
+coverage_limit = qs_val.get("source_coverage_limit", "")
+if coverage_limit:
+    st.info(
+        f"**Dataset Coverage Limit:** {coverage_limit}",
+        icon="ℹ️",
+    )
+
 col_trend, col_top = st.columns([1.6, 1], gap="medium")
 
 with col_trend:
     fig_demand = demand_time_series(
         demand, title="Portfolio Aggregate Monthly Demand (Units)"
     )
+    fig_demand.update_layout(height=360)
     st.plotly_chart(fig_demand, width="stretch")
 
 with col_top:
     fig_top = top_products_bar(
         demand, n=8, title="Top 8 SKUs by Historical Volume"
     )
+    fig_top.update_layout(height=360)
     st.plotly_chart(fig_top, width="stretch")
 
 st.divider()
@@ -160,24 +179,26 @@ col_method, col_warn = st.columns([1, 1], gap="medium")
 
 with col_method:
     fig_method = method_donut(method_summary)
+    fig_method.update_layout(height=360)
     st.plotly_chart(fig_method, width="stretch")
 
 with col_warn:
-    fig_warn = warning_bar(warning_summary)
+    fig_warn = warning_bar(
+        warning_summary,
+        title="Primary Forecast Warning Categories",
+    )
+    fig_warn.update_layout(height=360)
     st.plotly_chart(fig_warn, width="stretch")
+    st.caption(
+        "Each product receives one primary warning category; "
+        "additional issues may appear in the data-quality summary."
+    )
 
 st.divider()
 
 # ---------------------------------------------------------------------------
 # Data Governance & Provenance Section
 # ---------------------------------------------------------------------------
-
-late_regime = qs_val.get("late_2017_regime_change", "")
-if late_regime:
-    st.info(
-        f"**Dataset Governance Notice — Regime Shift (Late 2017):** {late_regime}",
-        icon="ℹ️",
-    )
 
 provenance_expander([
     {

@@ -3,22 +3,35 @@
 
 /* Theme tokens use the color scheme selected by Streamlit's native menu. */
 .stApp {
-    --bg-app: light-dark(#F8FAFC, #0A1628);
-    --bg-sidebar: light-dark(#FFFFFF, #0D1F3C);
-    --bg-card: light-dark(#FFFFFF, #111E35);
-    --bg-card-secondary: light-dark(#F1F5F9, #162544);
-    --border-color: light-dark(#E2E8F0, #1E3A5F);
-    --border-subtle: light-dark(#EDF2F7, #172A45);
-    --text-primary: light-dark(#0F172A, #F1F5F9);
-    --text-muted: light-dark(#64748B, #94A3B8);
-    --text-dim: light-dark(#94A3B8, #64748B);
-    --accent-blue: light-dark(#2563EB, #3B82F6);
-    --accent-green: light-dark(#059669, #10B981);
-    --accent-purple: light-dark(#7C3AED, #8B5CF6);
-    --accent-orange: light-dark(#D97706, #F59E0B);
-    --danger-red: light-dark(#DC2626, #EF4444);
-    --shadow-card: 0 1px 3px light-dark(rgba(0,0,0,.06), rgba(0,0,0,.30)),
-                   0 1px 2px light-dark(rgba(0,0,0,.04), rgba(0,0,0,.30));
+    --bg-app: light-dark(#F4F7F5, #171C1B);
+    --bg-sidebar: light-dark(#FFFFFF, #111715);
+    --bg-card: light-dark(#FFFFFF, #222B28);
+    --bg-card-secondary: light-dark(#E8EFEB, #34443C);
+    --border-color: light-dark(#D9E3DD, #3A4840);
+    --border-subtle: light-dark(#D9E3DD, #3A4840);
+    --text-primary: light-dark(#17231E, #F3F6F3);
+    --text-muted: light-dark(#718078, #A2B0A7);
+    --text-dim: light-dark(#718078, #A2B0A7);
+    --text-sidebar: light-dark(#1D3329, #F3F6F3);
+    --sidebar-accent: light-dark(#1D3329, #21A179);
+    --primary-accent: #21A179;
+    --historical-demand: #527D69;
+    --forecast: #21A179;
+    --comparison: #8BC9A5;
+    --healthy: #21A179;
+    --warning: #E5A642;
+    --critical: #D95D5D;
+    --secondary-comparison: #8B83F6;
+    --accent-blue: var(--historical-demand);
+    --accent-green: var(--healthy);
+    --accent-purple: var(--secondary-comparison);
+    --accent-orange: var(--warning);
+    --highlight-gold: var(--primary-accent);
+    --danger-red: var(--critical);
+    --button-primary-text: light-dark(#17231E, #171C1B);
+    --nav-active-text: light-dark(#FFFFFF, #171C1B);
+    --shadow-card: 0 1px 3px light-dark(rgba(23,35,30,.10), rgba(0,0,0,.30)),
+                   0 1px 2px light-dark(rgba(23,35,30,.06), rgba(0,0,0,.22));
     background: var(--bg-app) !important;
     color: var(--text-primary) !important;
 }
@@ -67,7 +80,7 @@ html, body {
     width: 280px !important; min-width: 280px !important; max-width: 280px !important;
     background: var(--bg-sidebar) !important; border-right: 1px solid var(--border-color) !important;
 }
-[data-testid="stSidebar"] * { color: var(--text-primary); }
+[data-testid="stSidebar"] * { color: var(--text-sidebar); }
 [data-testid="stSidebar"] {
     width: 280px !important;
     min-width: 280px !important;
@@ -139,7 +152,7 @@ html, body {
     border: 1px solid var(--border-color) !important; border-radius: 8px !important;
     box-shadow: var(--shadow-card); transition: border-color .15s ease, box-shadow .15s ease;
 }
-[data-testid="stMetric"]:hover { border-color: var(--accent-blue) !important; }
+[data-testid="stMetric"]:hover { border-color: var(--highlight-gold) !important; }
 [data-testid="stMetricLabel"] {
     color: var(--text-muted) !important; font-size: .75rem !important; font-weight: 600 !important;
     letter-spacing: .05em !important; text-transform: uppercase !important;
@@ -149,6 +162,12 @@ html, body {
     font-weight: 700 !important; letter-spacing: -.02em !important;
 }
 [data-testid="stMetricDelta"] { font-size: .8rem !important; }
+[data-testid="stMetricDelta"]:has([data-testid="stMetricDeltaIcon-Up"]) {
+    color: var(--accent-green) !important;
+}
+[data-testid="stMetricDelta"]:has([data-testid="stMetricDeltaIcon-Down"]) {
+    color: var(--danger-red) !important;
+}
 
 /* Typography */
 h1, h2, h3 { color: var(--text-primary) !important; }
@@ -180,6 +199,12 @@ hr { margin: 1.25rem 0 !important; border-color: var(--border-color) !important;
 [data-testid="stSlider"] label, [data-testid="stRadio"] label {
     color: var(--text-muted) !important; font-size: .8rem !important; font-weight: 600 !important;
 }
+[data-testid="stSidebar"] [data-testid="stSelectbox"] label,
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] label,
+[data-testid="stSidebar"] [data-testid="stSlider"] label,
+[data-testid="stSidebar"] [data-testid="stRadio"] label {
+    color: var(--text-sidebar) !important;
+}
 
 /* Selectbox and multiselect controls follow the native theme tokens. */
 [data-testid="stSelectbox"] [role="combobox"] {
@@ -192,6 +217,15 @@ hr { margin: 1.25rem 0 !important; border-color: var(--border-color) !important;
     color: var(--text-muted) !important;
     fill: currentColor !important;
 }
+[data-testid="stSelectbox"] [role="combobox"]:focus-within,
+[data-testid="stMultiSelect"] div[role="group"]:focus-within,
+[data-testid="stTextInput"] input:focus,
+[data-testid="stNumberInput"] input:focus,
+[data-testid="stDateInput"] input:focus,
+[data-testid="stTextArea"] textarea:focus {
+    border-color: var(--highlight-gold) !important;
+    box-shadow: 0 0 0 1px var(--highlight-gold) !important;
+}
 [data-testid="stMultiSelect"] div[role="group"]:has(> [data-testid="stMultiSelectTagsContainer"]) {
     background: var(--bg-card) !important;
     color: var(--text-primary) !important;
@@ -202,7 +236,7 @@ hr { margin: 1.25rem 0 !important; border-color: var(--border-color) !important;
     background: transparent !important;
 }
 [data-testid="stMultiSelectTagsContainer"] span[aria-label]:not([aria-label="Selected values"]):has(> [title]) {
-    background: color-mix(in srgb, var(--accent-blue) 18%, var(--bg-card)) !important;
+    background: color-mix(in srgb, var(--highlight-gold) 24%, var(--bg-card)) !important;
     color: var(--text-primary) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 6px !important;
@@ -264,13 +298,17 @@ hr { margin: 1.25rem 0 !important; border-color: var(--border-color) !important;
     color: var(--text-muted) !important; font-size: .9rem !important; font-weight: 500 !important;
 }
 [data-testid="stTabs"] [role="tab"][aria-selected="true"] {
-    color: var(--accent-blue) !important; border-bottom-color: var(--accent-blue) !important;
+    color: var(--accent-orange) !important; border-bottom-color: var(--highlight-gold) !important;
     font-weight: 600 !important;
 }
 [data-testid="stAlert"] {
-    border: 1px solid var(--border-color) !important; border-radius: 8px !important;
-    font-size: .88rem !important;
+    background: var(--bg-card-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-left: 4px solid var(--primary-accent) !important;
+    border-radius: 8px !important; font-size: .88rem !important;
 }
+[data-testid="stAlert"] [data-testid="stMarkdownContainer"] { color: var(--text-primary) !important; }
 
 /* Reusable HTML cards */
 .ent-card {
@@ -286,12 +324,12 @@ hr { margin: 1.25rem 0 !important; border-color: var(--border-color) !important;
 /* Development banner */
 .dev-status-banner {
     margin-bottom: 1.25rem; padding: 1.25rem 1.5rem; background: var(--bg-card);
-    border: 1px solid var(--border-color); border-left: 4px solid var(--accent-orange);
+    border: 1px solid var(--border-color); border-left: 4px solid var(--highlight-gold);
     border-radius: 8px; box-shadow: var(--shadow-card);
 }
 .dev-status-title {
     display: flex; align-items: center; gap: .5rem; margin-bottom: .35rem;
-    color: var(--accent-orange); font-size: .95rem; font-weight: 700;
+    color: var(--text-muted); font-size: .95rem; font-weight: 700;
 }
 .dev-status-body { margin: 0; color: var(--text-muted); font-size: .85rem; line-height: 1.5; }
 
@@ -300,10 +338,10 @@ hr { margin: 1.25rem 0 !important; border-color: var(--border-color) !important;
     display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px;
     font-size: .72rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
 }
-.badge-green { background: color-mix(in srgb, var(--accent-green) 14%, transparent); color: var(--accent-green); border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent); }
-.badge-blue { background: color-mix(in srgb, var(--accent-blue) 14%, transparent); color: var(--accent-blue); border: 1px solid color-mix(in srgb, var(--accent-blue) 35%, transparent); }
-.badge-orange { background: color-mix(in srgb, var(--accent-orange) 14%, transparent); color: var(--accent-orange); border: 1px solid color-mix(in srgb, var(--accent-orange) 35%, transparent); }
-.badge-red { background: color-mix(in srgb, var(--danger-red) 14%, transparent); color: var(--danger-red); border: 1px solid color-mix(in srgb, var(--danger-red) 35%, transparent); }
+.badge-green { background: color-mix(in srgb, var(--accent-green) 14%, transparent); color: var(--text-muted); border: 1px solid color-mix(in srgb, var(--accent-green) 35%, transparent); }
+.badge-blue { background: color-mix(in srgb, var(--accent-blue) 14%, transparent); color: var(--text-muted); border: 1px solid color-mix(in srgb, var(--accent-blue) 35%, transparent); }
+.badge-orange { background: color-mix(in srgb, var(--warning) 18%, transparent); color: var(--text-primary); border: 1px solid color-mix(in srgb, var(--warning) 55%, transparent); }
+.badge-red { background: color-mix(in srgb, var(--critical) 14%, transparent); color: var(--text-primary); border: 1px solid color-mix(in srgb, var(--critical) 35%, transparent); }
 .badge-muted { background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted); border: 1px solid var(--border-color); }
 
 /* Appearance popover */
@@ -319,3 +357,39 @@ hr { margin: 1.25rem 0 !important; border-color: var(--border-color) !important;
     color: var(--text-primary) !important;
 }
 
+/* Navigation and common controls use the palette's readable accent pair. */
+[data-testid="stSidebar"] a {
+    color: var(--text-sidebar) !important;
+    border-radius: 6px !important;
+}
+[data-testid="stSidebar"] a:hover {
+    background: color-mix(in srgb, var(--sidebar-accent) 14%, transparent) !important;
+    color: var(--text-sidebar) !important;
+}
+[data-testid="stSidebar"] .st-key-active_navigation_link a {
+    background: var(--sidebar-accent) !important;
+    color: var(--nav-active-text) !important;
+    font-weight: 700 !important;
+}
+[data-testid="stSidebar"] .st-key-active_navigation_link a * {
+    color: var(--nav-active-text) !important;
+}
+[data-testid="stMain"] button[kind="primary"],
+[data-testid="stSidebar"] button[kind="primary"] {
+    background: var(--primary-accent) !important;
+    border-color: var(--primary-accent) !important;
+    color: var(--button-primary-text) !important;
+}
+[data-testid="stMain"] button[kind="secondary"],
+[data-testid="stSidebar"] button[kind="secondary"] {
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+[data-testid="stMain"] button:focus-visible,
+[data-testid="stSidebar"] button:focus-visible,
+[data-testid="stMain"] a:focus-visible,
+[data-testid="stSidebar"] a:focus-visible {
+    outline: 2px solid var(--highlight-gold) !important;
+    outline-offset: 2px !important;
+}

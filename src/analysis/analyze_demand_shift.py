@@ -13,7 +13,6 @@ OUTPUT_DIR = PROJECT_ROOT / "outputs" / "forecasts"
 TRAIN_START = pd.Timestamp("2015-01-01")
 TRAIN_END = pd.Timestamp("2017-04-01")
 TEST_START = pd.Timestamp("2017-05-01")
-TEST_END = pd.Timestamp("2017-10-01")
 
 
 def load_data() -> pd.DataFrame:
@@ -30,9 +29,13 @@ def load_data() -> pd.DataFrame:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
 
     df = df.loc[
-        df["month"].between(TRAIN_START, TEST_END),
+        df["month"] >= TRAIN_START,
         ["month", "product_id", "demand_units"],
     ].copy()
+    if df.empty:
+        raise ValueError("No monthly demand observations are available.")
+    test_end = df["month"].max()
+    df = df.loc[df["month"] <= test_end].copy()
 
     df["demand_units"] = pd.to_numeric(
         df["demand_units"], errors="raise"
@@ -78,12 +81,13 @@ def summarize_period(
 def main() -> None:
     """Compare product demand between training and testing periods."""
     df = load_data()
+    test_end = df["month"].max()
 
     training = summarize_period(
         df, TRAIN_START, TRAIN_END, "train"
     )
     testing = summarize_period(
-        df, TEST_START, TEST_END, "test"
+        df, TEST_START, test_end, "test"
     )
 
     comparison = training.join(testing, how="outer").reset_index()
@@ -136,13 +140,13 @@ def main() -> None:
 
     print("\n=== DEMAND SHIFT ANALYSIS ===")
     print(f"Training period: {TRAIN_START:%Y-%m} to {TRAIN_END:%Y-%m}")
-    print(f"Testing period: {TEST_START:%Y-%m} to {TEST_END:%Y-%m}")
+    print(f"Testing period: {TEST_START:%Y-%m} to {test_end:%Y-%m}")
     print(f"Products analyzed: {comparison['product_id'].nunique()}")
 
     print("\n=== OVERALL PERIOD SUMMARY ===")
     for label, start, end in [
         ("Training", TRAIN_START, TRAIN_END),
-        ("Testing", TEST_START, TEST_END),
+        ("Testing", TEST_START, test_end),
     ]:
         period = df.loc[df["month"].between(start, end)]
         print(

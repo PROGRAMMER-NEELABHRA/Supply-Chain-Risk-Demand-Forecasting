@@ -52,6 +52,12 @@ intelligence_pages = [
         icon=":material/trending_up:",
     ),
     st.Page(
+        "pages/08_user_demand_forecasting.py",
+        title="User Demand Forecasting",
+        icon=":material/upload_file:",
+        url_path="user_demand_forecasting",
+    ),
+    st.Page(
         "pages/04_model_performance.py",
         title="Model Performance",
         icon=":material/tune:",

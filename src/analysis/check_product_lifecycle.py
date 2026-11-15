@@ -1,15 +1,27 @@
 
 """Check a product's presence across the full dataset timeline."""
 
-from pathlib import Path
-
 import pandas as pd
 
+from config import DATACO_RAW_DATA_FILE
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_FILE = PROJECT_ROOT / "data" / "raw" / "integrated_supply_chain.csv"
+
+DATA_FILE = DATACO_RAW_DATA_FILE
 
 PRODUCT_ID = 191
+
+
+def observed_month_range(order_dates: pd.Series) -> pd.PeriodIndex:
+    """Return calendar months bounded by valid dates in the source."""
+    dates = pd.to_datetime(order_dates, errors="coerce").dropna()
+    if dates.empty:
+        raise ValueError("No valid order dates are available.")
+
+    return pd.period_range(
+        dates.min().to_period("M"),
+        dates.max().to_period("M"),
+        freq="M",
+    )
 
 
 def main() -> None:
@@ -20,7 +32,7 @@ def main() -> None:
     )
 
     df["order_date"] = pd.to_datetime(
-        df["order_date"], errors="coerce", dayfirst=True
+        df["order_date"], errors="coerce", format="mixed", dayfirst=True
     )
     df["quantity"] = pd.to_numeric(df["quantity"], errors="coerce")
     df = df.dropna(subset=["order_date", "product_id", "quantity"])
@@ -37,7 +49,7 @@ def main() -> None:
         )
     )
 
-    full_months = pd.period_range("2017-06", "2018-01", freq="M")
+    full_months = observed_month_range(df["order_date"])
     monthly = monthly.reindex(full_months)
     monthly.index.name = "month"
 

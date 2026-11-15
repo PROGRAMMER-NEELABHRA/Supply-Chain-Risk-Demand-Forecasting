@@ -18,8 +18,8 @@ def get_current_theme() -> str:
 
 def get_theme_tokens(theme: str | None = None) -> dict[str, str]:
     """Return palette tokens for the active native Streamlit theme."""
-    selected = theme or get_current_theme()
-    return THEMES.get(selected, THEMES[get_current_theme()])
+    selected = theme or get_current_theme() or "light"
+    return THEMES.get(selected, THEMES["light"])
 
 
 def inject_css() -> None:

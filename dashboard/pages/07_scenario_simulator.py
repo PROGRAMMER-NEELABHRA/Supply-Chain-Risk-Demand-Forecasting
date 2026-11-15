@@ -1,252 +1,256 @@
-"""Scenario Simulator — Exploratory multiplier what-if prototype."""
+"""Deterministic demand scenarios based on the selected forecast."""
 
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from dashboard.components.kpi_cards import kpi_row, page_header, under_development_banner
-from dashboard.data.loader import load_future_forecasts, load_monthly_demand
-from dashboard.styles.theme import get_plotly_layout, get_theme_tokens
+from dashboard.components.kpi_cards import kpi_row, page_header
+from dashboard.operational_data import (
+    DATACO_SOURCE,
+    activate_operational_dataset,
+    load_operational_dataset,
+    select_operational_source,
+    source_coverage_label,
+)
+from dashboard.styles.theme import get_plotly_layout
+from src.scenarios.simulation import (
+    aggregate_portfolio_scenarios,
+    build_demand_scenarios,
+)
 
-# ---------------------------------------------------------------------------
-# Data loading
-# ---------------------------------------------------------------------------
-
-forecasts = load_future_forecasts()
-demand = load_monthly_demand()
-t = get_theme_tokens()
-
-# ---------------------------------------------------------------------------
-# Page Header
-# ---------------------------------------------------------------------------
 
 page_header(
     title="Scenario Simulator",
-    subtitle="Interactive prototype for what-if demand scaling and portfolio sensitivity analysis",
+    subtitle=(
+        "Deterministic demand comparisons based on the selected dataset's "
+        "actual generated forecast horizon."
+    ),
     category="OPERATIONS",
-    badge_text="Prototype Tool",
+    badge_text="Deterministic Scenarios",
     badge_variant="blue",
 )
 
-# ---------------------------------------------------------------------------
-# Development Notice
-# ---------------------------------------------------------------------------
+selected_source = select_operational_source()
+dataset, unavailable_reason = load_operational_dataset(
+    selected_source,
+    st.session_state,
+)
+if dataset is None:
+    st.info(
+        f"{unavailable_reason} Visit **User Demand Forecasting**, prepare the "
+        "CSV, run model comparison, and generate forecasts; then select "
+        "**User-uploaded dataset** here."
+    )
+    st.stop()
 
-under_development_banner(
-    module_title="Stochastic Simulation Engine",
-    target_module="src/scenarios/simulation.py",
-    description=(
-        "The production simulation module will feature parameterized Monte Carlo simulations, "
-        "supplier lead-time shock propagation, and econometric elasticity models."
-    ),
-    disclaimer=(
-        "The interface below is a prototype that applies a deterministic multiplier to existing "
-        "forecast outputs. It is intended for exploratory sensitivity analysis only and does NOT "
-        "represent a validated stochastic risk simulation."
-    ),
+activate_operational_dataset(st.session_state, dataset)
+st.caption(source_coverage_label(dataset))
+st.info(
+    "Scenarios scale the saved forecast values; they do not retrain the model "
+    "or change source data. This is not Monte Carlo simulation, a calibrated "
+    "uncertainty interval, a supplier shock model, or a demand-elasticity estimate."
+)
+st.caption(
+    "Defaults are optimistic +10% and pessimistic -10%; they are transparent "
+    "planning assumptions, not estimates of forecast uncertainty."
+)
+if dataset.forecasts.empty:
+    st.warning(
+        "No eligible future forecast rows are available for scenario analysis. "
+        "Review forecast warnings on User Demand Forecasting."
+    )
+    if not dataset.warnings.empty:
+        st.dataframe(dataset.warnings, hide_index=True)
+    st.stop()
+
+product_ids = (
+    sorted(dataset.forecasts["product_id"].dropna().unique().tolist(), key=str)
+    if "product_id" in dataset.forecasts.columns
+    else []
+)
+has_product_ids = bool(product_ids)
+scope_options = list(range(len(product_ids) + 1)) if has_product_ids else [0]
+if st.session_state.get("scenario_product") not in scope_options:
+    st.session_state.pop("scenario_product", None)
+choice = st.selectbox(
+    "Analysis scope",
+    scope_options,
+    format_func=(
+        lambda index: "Portfolio"
+        if index == 0
+        else f"Product {product_ids[index - 1]}"
+    )
+    if has_product_ids
+    else lambda _: "Single series",
+    key="scenario_product",
+)
+selected_product = (
+    product_ids[choice - 1] if has_product_ids and choice > 0 else None
 )
 
-st.divider()
-
-# ---------------------------------------------------------------------------
-# Scenario Controls in Sidebar
-# ---------------------------------------------------------------------------
-
-st.sidebar.markdown("### Simulation Parameters")
-
-all_products = sorted(forecasts["product_id"].unique().tolist())
-selected_product = st.sidebar.selectbox(
-    "Target SKU",
-    all_products,
-    format_func=lambda pid: f"Product {pid}",
-    key="sim_product",
-)
-
-demand_multiplier = st.sidebar.slider(
-    "Demand Multiplier",
-    min_value=0.5,
-    max_value=2.5,
-    value=1.0,
-    step=0.05,
-    key="sim_multiplier",
-    help="Scale factor applied directly to baseline forecast demand (1.0 = Baseline).",
-)
-
-scenario_label_map = {
-    (0.5, 0.79): "Contraction Scenario (-20% to -50%)",
-    (0.8, 0.99): "Mild Decline (-1% to -20%)",
-    (1.0, 1.0): "Baseline Model Output (1.0x)",
-    (1.01, 1.25): "Moderate Growth (+1% to +25%)",
-    (1.26, 2.5): "Surge / Upside (+26% to +150%)",
-}
-
-scenario_name = "Baseline Model Output (1.0x)"
-for (lo, hi), label in scenario_label_map.items():
-    if lo <= demand_multiplier <= hi:
-        scenario_name = label
-        break
-
-st.sidebar.markdown(
-    f"""
-    <div style="padding:0.6rem 0.8rem;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;font-size:0.78rem;">
-        <span style="color:var(--text-muted);font-weight:600;text-transform:uppercase;">Scenario Classification</span><br>
-        <span style="color:var(--text-primary);font-weight:600;">{scenario_name}</span>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-# ---------------------------------------------------------------------------
-# Scenario Calculation & KPIs
-# ---------------------------------------------------------------------------
-
-prod_fc = forecasts[forecasts["product_id"] == selected_product].copy()
-prod_hist = demand[demand["product_id"] == selected_product].copy()
-
-if not prod_fc.empty:
-    base_total = float(prod_fc["forecast_demand"].sum())
-    scenario_total = base_total * demand_multiplier
-    delta_units = scenario_total - base_total
-    delta_pct = (demand_multiplier - 1.0) * 100
-
-    kpi_row([
-        {
-            "label": "Multiplier Setting",
-            "value": f"×{demand_multiplier:.2f}",
-            "help": "Direct scaling multiplier selected in the sidebar.",
-            "provenance": "User Parameter",
-        },
-        {
-            "label": "Baseline 3M Projection",
-            "value": f"{base_total:,.0f} units",
-            "help": "Original unscaled Random Forest / Baseline forecast.",
-            "provenance": "future_demand_forecasts.csv",
-        },
-        {
-            "label": "Simulated 3M Demand",
-            "value": f"{scenario_total:,.0f} units",
-            "delta": f"{delta_units:+,.0f} ({delta_pct:+.1f}%)" if delta_units != 0 else "Baseline",
-            "delta_color": "normal" if delta_units >= 0 else "inverse",
-            "help": "Adjusted forward demand volume under active multiplier.",
-            "provenance": "Scaled output",
-        },
-    ])
-
-    st.divider()
-
-    # ---------------------------------------------------------------------------
-    # Scenario Chart
-    # ---------------------------------------------------------------------------
-
-    fig = go.Figure()
-
-    # Observed History
-    fig.add_trace(
-        go.Scatter(
-            x=prod_hist["month"],
-            y=prod_hist["demand_units"],
-            name="Observed Demand",
-            mode="lines+markers",
-            line=dict(color=t["accent_blue"], width=2),
-            marker=dict(size=4),
-        )
+control_col1, control_col2, control_col3 = st.columns(3)
+with control_col1:
+    optimistic_multiplier = st.slider(
+        "Optimistic multiplier",
+        min_value=1.0,
+        max_value=2.5,
+        value=1.10,
+        step=0.05,
+        key="scenario_optimistic",
+    )
+with control_col2:
+    pessimistic_multiplier = st.slider(
+        "Pessimistic multiplier",
+        min_value=0.5,
+        max_value=1.0,
+        value=0.90,
+        step=0.05,
+        key="scenario_pessimistic",
+    )
+with control_col3:
+    user_multiplier = st.slider(
+        "User multiplier",
+        min_value=0.5,
+        max_value=2.5,
+        value=1.0,
+        step=0.05,
+        key="scenario_user",
     )
 
-    # Baseline Forecast
-    fig.add_trace(
-        go.Scatter(
-            x=prod_fc["forecast_month"],
-            y=prod_fc["forecast_demand"],
-            name="Baseline Forecast",
-            mode="lines+markers",
-            line=dict(color=t["accent_green"], width=2, dash="dash"),
-            marker=dict(size=6, symbol="diamond"),
-        )
-    )
-
-    # Simulated Forecast
-    if demand_multiplier != 1.0:
-        fig.add_trace(
-            go.Scatter(
-                x=prod_fc["forecast_month"],
-                y=prod_fc["forecast_demand"] * demand_multiplier,
-                name=f"Simulated (×{demand_multiplier:.2f})",
-                mode="lines+markers",
-                line=dict(color=t["accent_orange"], width=2.5, dash="dot"),
-                marker=dict(size=7, symbol="circle"),
-            )
-        )
-
-    # Forecast start vertical cutoff
-    if not prod_hist.empty:
-        cutoff = prod_hist["month"].max()
-        fig.add_vline(
-            x=cutoff,
-            line=dict(color=t["accent_orange"], width=1, dash="dot"),
-            annotation_text="Cutoff",
-            annotation_font=dict(color=t["accent_orange"], size=10),
-            annotation_position="top right",
-        )
-
-    layout = dict(**get_plotly_layout())
-    layout["title"] = dict(
-        text=f"Product {selected_product} — Scenario Projection Comparison",
-        font=dict(size=13, color=t["text_primary"]),
-        x=0.01,
-    )
-    layout["xaxis_title"] = "Month"
-    layout["yaxis_title"] = "Units"
-    fig.update_layout(**layout)
-
-    st.plotly_chart(fig, width="stretch")
-
-    # ---------------------------------------------------------------------------
-    # Month-by-Month Scenario Table
-    # ---------------------------------------------------------------------------
-
-    col_m, col_p = st.columns([1.2, 1], gap="medium")
-
-    with col_m:
-        st.markdown("### Monthly Projection Impact")
-        breakdown = prod_fc[["forecast_month", "forecast_demand", "forecast_confidence"]].copy()
-        breakdown["scenario_demand"] = (breakdown["forecast_demand"] * demand_multiplier).round(1)
-        breakdown["delta"] = (breakdown["scenario_demand"] - breakdown["forecast_demand"]).round(1)
-        breakdown["forecast_month"] = breakdown["forecast_month"].dt.strftime("%b %Y")
-        breakdown.columns = [
-            "Month",
-            "Base Forecast",
-            "Confidence",
-            "Simulated Demand",
-            "Variance (Δ)",
-        ]
-
-        st.dataframe(
-            breakdown.style.format({
-                "Base Forecast": "{:,.1f}",
-                "Simulated Demand": "{:,.1f}",
-                "Variance (Δ)": "{:+,.1f}",
-            }),
-            width="stretch",
-            hide_index=True,
-        )
-
-    with col_p:
-        st.markdown("### Portfolio Aggregate Impact")
-        agg_base = forecasts.groupby("forecast_month")["forecast_demand"].sum().reset_index()
-        agg_base["scenario_demand"] = agg_base["forecast_demand"] * demand_multiplier
-        agg_base["delta"] = agg_base["scenario_demand"] - agg_base["forecast_demand"]
-        agg_base["forecast_month"] = agg_base["forecast_month"].dt.strftime("%b %Y")
-        agg_base.columns = ["Month", "Portfolio Base", "Portfolio Simulated", "Variance (Δ)"]
-
-        st.dataframe(
-            agg_base.style.format({
-                "Portfolio Base": "{:,.0f}",
-                "Portfolio Simulated": "{:,.0f}",
-                "Variance (Δ)": "{:+,.0f}",
-            }),
-            width="stretch",
-            hide_index=True,
-        )
-
+product_scenarios = build_demand_scenarios(
+    dataset.forecasts,
+    product_id=selected_product,
+    optimistic_multiplier=optimistic_multiplier,
+    pessimistic_multiplier=pessimistic_multiplier,
+    user_multiplier=user_multiplier,
+)
+if selected_product is None:
+    display_scenarios = aggregate_portfolio_scenarios(product_scenarios)
 else:
-    st.error(f"No forecast records available for Product {selected_product}.")
+    display_scenarios = product_scenarios
+
+baseline_total = float(display_scenarios["baseline_demand"].sum())
+user_total = float(display_scenarios["user_scenario_demand"].sum())
+delta_units = user_total - baseline_total
+delta_pct = delta_units / baseline_total * 100 if baseline_total else None
+first_period = pd.to_datetime(display_scenarios["forecast_month"]).min()
+last_period = pd.to_datetime(display_scenarios["forecast_month"]).max()
+kpi_row(
+    [
+        {
+            "label": "Baseline Forecast Total",
+            "value": f"{baseline_total:,.1f} units",
+            "help": "Sum of generated forecast rows over the available horizon.",
+            "provenance": dataset.name,
+        },
+        {
+            "label": "User Scenario Total",
+            "value": f"{user_total:,.1f} units",
+            "delta": (
+                f"{delta_units:+,.1f} units ({delta_pct:+.1f}%)"
+                if delta_pct is not None
+                else f"{delta_units:+,.1f} units; percentage unavailable at zero baseline"
+            ),
+            "delta_color": "normal" if delta_units >= 0 else "inverse",
+            "help": "Deterministic scaling of the selected baseline forecast.",
+            "provenance": "User multiplier",
+        },
+        {
+            "label": "Forecast Horizon",
+            "value": f"{first_period:%Y-%m-%d} – {last_period:%Y-%m-%d}",
+            "help": "The original forecast dates are unchanged by scenario multipliers.",
+            "provenance": f"{dataset.frequency.capitalize()} forecast periods",
+        },
+    ]
+)
+
+series = [
+    ("baseline_demand", "Baseline", "#527D69", "solid"),
+    ("optimistic_demand", "Optimistic", "#21A179", "dash"),
+    ("pessimistic_demand", "Pessimistic", "#E5A642", "dot"),
+    ("user_scenario_demand", "User scenario", "#8B83F6", "dashdot"),
+]
+figure = go.Figure()
+for column, name, color, dash in series:
+    figure.add_trace(
+        go.Scatter(
+            x=display_scenarios["forecast_month"],
+            y=display_scenarios[column],
+            name=name,
+            mode="lines+markers",
+            line={"color": color, "dash": dash},
+        )
+    )
+layout = dict(get_plotly_layout())
+scope_label = (
+    "Portfolio"
+    if selected_product is None and has_product_ids
+    else f"Product {selected_product}"
+    if selected_product is not None
+    else "Single series"
+)
+layout.update(
+    title=f"{scope_label} {dataset.frequency} demand scenarios",
+    xaxis_title=f"Forecast {dataset.frequency} period",
+    yaxis_title="Demand units",
+    legend={"orientation": "h"},
+)
+figure.update_layout(**layout)
+st.plotly_chart(figure, width="stretch")
+
+st.markdown(f"### {dataset.frequency.capitalize()} scenario comparison")
+table = display_scenarios[
+    [
+        "forecast_month",
+        "baseline_demand",
+        "optimistic_demand",
+        "optimistic_delta_units",
+        "optimistic_delta_pct",
+        "pessimistic_demand",
+        "pessimistic_delta_units",
+        "pessimistic_delta_pct",
+        "user_scenario_demand",
+        "user_scenario_delta_units",
+        "user_scenario_delta_pct",
+    ]
+].rename(
+    columns={
+        "forecast_month": "Forecast period",
+        "baseline_demand": "Baseline demand",
+        "optimistic_demand": "Optimistic demand",
+        "optimistic_delta_units": "Optimistic Δ units",
+        "optimistic_delta_pct": "Optimistic Δ (%)",
+        "pessimistic_demand": "Pessimistic demand",
+        "pessimistic_delta_units": "Pessimistic Δ units",
+        "pessimistic_delta_pct": "Pessimistic Δ (%)",
+        "user_scenario_demand": "User scenario demand",
+        "user_scenario_delta_units": "User Δ units",
+        "user_scenario_delta_pct": "User Δ (%)",
+    }
+)
+st.dataframe(
+    table.style.format(
+        {
+            column: "{:,.1f}"
+            for column in table.columns
+            if column != "Forecast period"
+        },
+        na_rep="Unavailable",
+    ),
+    width="stretch",
+    hide_index=True,
+)
+st.download_button(
+    "Download scenario CSV",
+    data=display_scenarios.to_csv(index=False),
+    file_name=(
+        "dataco_demand_scenarios.csv"
+        if dataset.source == DATACO_SOURCE and selected_product is None
+        else (
+            f"dataco_product_{selected_product}_scenarios.csv"
+            if dataset.source == DATACO_SOURCE
+            else "user_upload_demand_scenarios.csv"
+        )
+    ),
+    mime="text/csv",
+)

@@ -2,9 +2,14 @@
 
 ## Overview
 
+> **Historical artifact notice:** This report describes outputs from the
+> previous source ending in January 2018. The configured DataCo input now ends
+> in August 2017, and the pipeline has not yet been rerun. These results are
+> not results for the currently selected source.
+
 The pipeline rebuilds monthly demand from the raw transaction CSV, evaluates
 three models with a recursive three-month backtest, and generates historical
-three-month forecasts. The source ends in January 2018, so future forecast
+three-month forecasts. In the previous run, the source ended in January 2018, so future forecast
 months are February–April 2018. They are demonstration artifacts, not current
 operational predictions.
 
@@ -34,17 +39,17 @@ operational validation.
 
 ## Tiered forecast coverage and quality handling
 
-The January 2018 cutoff produces three forecast rows per product with at
-least one observed record: 354 rows for the current 118 products. Products
-with no observed demand are not forecast and are documented in
+The prior January 2018 cutoff produced three forecast rows per product with
+at least one observed record: 354 rows for the previous 118-product source.
+Products with no observed demand were not forecast and were documented in
 `outputs/forecasts/forecast_products_skipped.csv` when present in the known
 product set.
 
-In the current run, 54 products use Random Forest, 55 use Moving Average,
-and 9 use Naive. Confidence is 0 high, 30 medium, and 324 low forecast rows.
+In that prior run, 54 products used Random Forest, 55 used Moving Average,
+and 9 used Naive. Confidence was 0 high, 30 medium, and 324 low forecast rows.
 The low-confidence count includes all 108 products whose last actual
 observation precedes the January 2018 cutoff; it is not an accuracy estimate.
-All 118 products have actual observations in this source, so the skipped
+All 118 products had actual observations in the previous source, so the skipped
 products file is empty.
 
 The generator selects one of three clearly labelled methods:
@@ -76,16 +81,16 @@ demonstrations, not inventory or purchasing recommendations.
 
 ## Data-quality findings
 
-The raw dataset has 180,519 transactions, 118 products, and 37 months. The
-monthly rebuild contains 1,818 observed product-months. Of 4,366 combinations
-in the full 118-product by 37-month grid, 2,548 are absent and must not be
-assumed to represent zero demand. Ten missing months are internal to observed
-product histories; these are available only in clearly labelled synthetic
-review outputs.
+The prior raw dataset had 180,519 transactions, 118 products, and 37 months.
+Its monthly rebuild contained 1,818 observed product-months. Of 4,366
+combinations in its 118-product by 37-month grid, 2,548 were absent and must
+not be assumed to represent zero demand. These counts do not describe the
+currently configured source.
 
-Monthly product activity and transaction quantity distributions change
-sharply in late 2017. This indicates a source-data regime change but does not
-establish that real demand collapsed. See
+The prior report observed changes in monthly product activity and transaction
+quantity distributions late in 2017. The currently configured source ends in
+August 2017, so this report's later-period finding cannot be verified against
+that source. See
 `data/quality_review/DATA_QUALITY_REPORT.md` and
 `outputs/forecasts/data_quality_summary.csv`.
 

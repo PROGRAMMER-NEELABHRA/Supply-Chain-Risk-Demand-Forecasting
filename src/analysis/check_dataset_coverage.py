@@ -1,13 +1,12 @@
 
 """Check whether the source dataset ends partway through a month."""
 
-from pathlib import Path
-
 import pandas as pd
 
+from config import DATACO_RAW_DATA_FILE
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_FILE = PROJECT_ROOT / "data" / "raw" / "integrated_supply_chain.csv"
+
+DATA_FILE = DATACO_RAW_DATA_FILE
 
 
 def main() -> None:

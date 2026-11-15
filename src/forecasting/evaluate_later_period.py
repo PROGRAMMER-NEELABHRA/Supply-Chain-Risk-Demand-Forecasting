@@ -30,7 +30,6 @@ OUTPUT_DIR = PROJECT_ROOT / "outputs" / "forecasts"
 START_MONTH = pd.Timestamp("2015-01-01")
 TRAIN_END = pd.Timestamp("2017-04-01")
 TEST_START = pd.Timestamp("2017-05-01")
-TEST_END = pd.Timestamp("2017-10-01")
 
 MODEL_COLUMNS = {
     "Naive": "naive_forecast",
@@ -43,26 +42,37 @@ def load_data() -> pd.DataFrame:
     """Load and validate the monthly demand dataset."""
     df = load_monthly_demand(DATA_FILE)
     df = df.loc[
-        df["month"].between(START_MONTH, TEST_END),
+        df["month"] >= START_MONTH,
         ["month", "product_id", "demand_units"],
     ].copy()
+
+    if df.empty:
+        raise ValueError("No monthly demand observations are available.")
 
     return df.sort_values(
         ["product_id", "month"]
     ).reset_index(drop=True)
 
 
-def select_eligible_products(df: pd.DataFrame) -> pd.DataFrame:
+def select_eligible_products(
+    df: pd.DataFrame,
+    test_end: pd.Timestamp | None = None,
+) -> pd.DataFrame:
     """Select products with complete history through the test period."""
+    if df.empty:
+        raise ValueError("No monthly demand observations are available.")
+    test_end = pd.Timestamp(
+        test_end if test_end is not None else df["month"].max()
+    )
     eligible = select_products_with_complete_history(
         df,
         START_MONTH,
-        TEST_END,
+        test_end,
     )
     if eligible.empty:
         raise ValueError(
-            "No products have complete history through October 2017. "
-            "Inspect product coverage before changing the evaluation period."
+            f"No products have complete history through {test_end:%Y-%m}. "
+            "The later-period evaluation is unavailable for this source."
         )
 
     return eligible
@@ -111,13 +121,14 @@ def build_baseline_predictions(
 def main() -> None:
     """Train and compare models on the later historical period."""
     df = load_data()
-    eligible = select_eligible_products(df)
+    test_end = pd.Timestamp(df["month"].max())
+    eligible = select_eligible_products(df, test_end)
 
     features = create_demand_features(eligible)
 
     train = features.loc[features["month"] <= TRAIN_END].copy()
     test = features.loc[
-        features["month"].between(TEST_START, TEST_END)
+        features["month"].between(TEST_START, test_end)
     ].copy()
 
     if train.empty or test.empty:
@@ -164,7 +175,11 @@ def main() -> None:
     print("\n=== LATER-PERIOD EVALUATION ===")
     print(f"Eligible products: {eligible['product_id'].nunique()}")
     print(f"Training: {START_MONTH:%Y-%m} to {TRAIN_END:%Y-%m}")
-    print(f"Testing: {TEST_START:%Y-%m} to {TEST_END:%Y-%m}")
+    print(f"Testing: {TEST_START:%Y-%m} to {test_end:%Y-%m}")
+    print(
+        "Protocol: one-step-ahead rolling evaluation; actual demand from "
+        "completed test months is available for the next forecast step."
+    )
     print(f"Training observations: {len(train)}")
     print(f"Test observations: {len(test)}")
 

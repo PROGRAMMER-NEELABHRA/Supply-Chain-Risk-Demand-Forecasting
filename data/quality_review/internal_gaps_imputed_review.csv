@@ -1,11 +1,1 @@
 product_id,month,demand_units_imputed,imputation_method
-1346,2017-11-01,202.5,linear_interpolation_synthetic_not_observed
-1347,2017-11-01,103.5,linear_interpolation_synthetic_not_observed
-1348,2017-11-01,135.5,linear_interpolation_synthetic_not_observed
-1349,2017-11-01,296.0,linear_interpolation_synthetic_not_observed
-1350,2017-11-01,326.0,linear_interpolation_synthetic_not_observed
-1351,2017-11-01,221.0,linear_interpolation_synthetic_not_observed
-1355,2017-12-01,242.0,linear_interpolation_synthetic_not_observed
-1356,2017-12-01,181.0,linear_interpolation_synthetic_not_observed
-1357,2017-12-01,104.0,linear_interpolation_synthetic_not_observed
-1358,2017-12-01,217.0,linear_interpolation_synthetic_not_observed

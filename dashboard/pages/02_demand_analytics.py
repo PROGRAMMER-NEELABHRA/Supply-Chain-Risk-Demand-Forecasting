@@ -146,7 +146,9 @@ st.divider()
 st.markdown("### Demand Regime Transition (Train vs. Test)")
 st.markdown(
     "<p style='color:var(--text-muted);font-size:0.85rem;margin-top:-0.3rem;margin-bottom:1rem;'>"
-    "Audit of baseline demand shifts between the model training window and validation test horizon."
+    "Audit of baseline demand shifts between the model training window "
+    f"(Jan 2015–Apr 2017) and validation period "
+    f"(May 2017–{demand['month'].max():%b %Y})."
     "</p>",
     unsafe_allow_html=True,
 )

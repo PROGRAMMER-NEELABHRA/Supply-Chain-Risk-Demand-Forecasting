@@ -1,10 +1,9 @@
-from pathlib import Path
-
 import pandas as pd
 
+from config import DATACO_RAW_DATA_FILE
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_FILE = PROJECT_ROOT / "data" / "raw" / "integrated_supply_chain.csv"
+
+DATA_FILE = DATACO_RAW_DATA_FILE
 
 
 def main() -> None:
@@ -12,7 +11,7 @@ def main() -> None:
     if not DATA_FILE.exists():
         raise FileNotFoundError(
             f"Dataset not found: {DATA_FILE}\n"
-            "Place integrated_supply_chain.csv in data/raw/."
+            f"Place {DATA_FILE.name} in data/raw/."
         )
 
     df = pd.read_csv(DATA_FILE)

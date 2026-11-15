@@ -53,6 +53,7 @@ def kpi_row(metrics: List[Dict[str, Any]]) -> None:
     - value: str | int | float
     - delta: Optional[str] (change/comparison text)
     - delta_color: Optional[str] ('normal', 'inverse', 'off')
+    - caption: Optional[str] (neutral supporting context)
     - help: Optional[str] (tooltip explaining calculation/provenance)
     - provenance: Optional[str] (short source label displayed beneath metric)
     """
@@ -66,6 +67,8 @@ def kpi_row(metrics: List[Dict[str, Any]]) -> None:
                 delta_color=m.get("delta_color", "normal"),
                 help=m.get("help"),
             )
+            if m.get("caption"):
+                st.caption(m["caption"])
             if "provenance" in m and m["provenance"]:
                 st.markdown(
                     f'<div style="font-size:0.7rem;color:var(--text-dim);margin-top:-0.5rem;padding-left:0.2rem;">'

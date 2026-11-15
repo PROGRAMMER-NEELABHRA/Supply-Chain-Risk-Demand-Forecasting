@@ -117,6 +117,9 @@ def validate_raw_data(df: pd.DataFrame) -> None:
     if not np.isfinite(product_ids).all():
         raise ValueError("Raw product IDs must be numeric.")
 
+    if (product_ids % 1 != 0).any():
+        raise ValueError("Raw product IDs must be integral.")
+
     if (quantities <= 0).any():
         raise ValueError("Raw transaction quantities must be positive.")
 
@@ -152,7 +155,7 @@ def validate_monthly_demand(df: pd.DataFrame) -> None:
     if (demand < 0).any():
         raise ValueError("Demand cannot be negative.")
 
-    if (months.dt.day != 1).any():
+    if (months.dt.day != 1).any() or (months != months.dt.normalize()).any():
         raise ValueError("Monthly dates must represent month starts.")
 
     if df.duplicated(["product_id", "month"]).any():

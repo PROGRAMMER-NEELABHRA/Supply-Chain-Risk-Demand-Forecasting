@@ -1,17 +1,24 @@
 
 """Aggregate order records into monthly product demand."""
 
+from datetime import date, datetime
+from numbers import Number
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
+from config import DATACO_RAW_DATA_FILE
 from src.data.loaders import load_csv
-from src.data.validators import parse_raw_order_dates, validate_raw_data
+from src.data.validators import (
+    parse_raw_order_dates,
+    validate_monthly_demand,
+    validate_raw_data,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-INPUT_FILE = PROJECT_ROOT / "data" / "raw" / "integrated_supply_chain.csv"
+INPUT_FILE = DATACO_RAW_DATA_FILE
 OUTPUT_DIR = PROJECT_ROOT / "data" / "processed"
 QUALITY_OUTPUT_DIR = PROJECT_ROOT / "data" / "quality_review"
 FORECAST_OUTPUT_DIR = PROJECT_ROOT / "outputs" / "forecasts"
@@ -51,8 +58,84 @@ def aggregate_monthly_demand(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def build_quality_artifacts(monthly: pd.DataFrame) -> dict[str, int]:
+def build_source_metadata(
+    raw: pd.DataFrame,
+    source_file: str | Path,
+) -> dict[str, int | str]:
+    """Describe the validated raw source for the quality summary."""
+    validate_raw_data(raw)
+    dates = parse_raw_order_dates(raw["order_date"])
+
+    return {
+        "source_filename": Path(source_file).name,
+        "source_row_count": len(raw),
+        "source_product_count": int(
+            pd.to_numeric(raw["product_id"]).nunique()
+        ),
+        "source_first_order_date": dates.min().date().isoformat(),
+        "source_last_order_date": dates.max().date().isoformat(),
+    }
+
+
+def build_quality_artifacts(
+    monthly: pd.DataFrame,
+    *,
+    source_metadata: dict[str, int | str] | None = None,
+) -> dict[str, int | str]:
     """Classify absent product-months and isolate labelled gap estimates."""
+    validate_monthly_demand(monthly)
+    if "transaction_rows" not in monthly.columns:
+        raise ValueError(
+            "Missing monthly demand columns: ['transaction_rows']"
+        )
+
+    transaction_rows = monthly["transaction_rows"]
+    if transaction_rows.isna().any():
+        raise ValueError("transaction_rows must not contain null values.")
+    if not transaction_rows.map(
+        lambda value: isinstance(value, Number)
+        and not isinstance(value, (bool, np.bool_))
+    ).all():
+        raise ValueError("transaction_rows must contain numeric values.")
+
+    transaction_rows = pd.to_numeric(transaction_rows, errors="raise")
+    if not np.isfinite(transaction_rows).all():
+        raise ValueError("transaction_rows must contain finite numeric values.")
+    if (transaction_rows <= 0).any() or (
+        transaction_rows % 1 != 0
+    ).any():
+        raise ValueError("transaction_rows must contain positive integers.")
+
+    supported_month_types = (str, date, datetime, np.datetime64)
+    if not monthly["month"].map(
+        lambda value: isinstance(value, supported_month_types)
+    ).all():
+        raise ValueError(
+            "Monthly month values must be date strings or datetime values."
+        )
+    try:
+        normalized_months = pd.to_datetime(
+            monthly["month"],
+            errors="coerce",
+            format="mixed",
+        )
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(
+            "Monthly month values must be valid date strings or datetime values."
+        ) from exc
+    if not pd.api.types.is_datetime64_any_dtype(normalized_months.dtype):
+        raise ValueError(
+            "Monthly month values must use consistent timezone-naive dates."
+        )
+    if normalized_months.dt.tz is not None:
+        raise ValueError(
+            "Monthly month values must be timezone-naive."
+        )
+
+    monthly = monthly.copy()
+    monthly["month"] = normalized_months
+    validate_monthly_demand(monthly)
+
     products = monthly["product_id"].drop_duplicates().sort_values()
     months = pd.date_range(
         monthly["month"].min(),
@@ -203,11 +286,14 @@ def build_quality_artifacts(monthly: pd.DataFrame) -> dict[str, int]:
             gap_report["product_id"].nunique()
         ),
         "synthetic_imputed_values": int(len(gap_report)),
-        "late_2017_regime_change": (
-            "Observed source-coverage and quantity-distribution change; "
-            "historical model results do not validate this later regime."
-        ),
     }
+    if source_metadata is not None:
+        summary.update(source_metadata)
+        summary["source_coverage_limit"] = (
+            f"Raw transactions end {source_metadata['source_last_order_date']}; "
+            "later demand regimes are not observed or validated."
+        )
+
     pd.DataFrame(
         [
             {"metric": name, "value": value}
@@ -224,17 +310,26 @@ def main() -> None:
     """Create a monthly demand table for each product."""
 
     df = load_csv(INPUT_FILE)
+    source_metadata = build_source_metadata(df, INPUT_FILE)
     monthly = aggregate_monthly_demand(df)
+    quality_summary = build_quality_artifacts(
+        monthly,
+        source_metadata=source_metadata,
+    )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     processed_file = OUTPUT_DIR / "monthly_demand_observed.csv"
     monthly[["month", "product_id", "demand_units"]].to_csv(
         processed_file, index=False
     )
-    quality_summary = build_quality_artifacts(monthly)
 
     print("\n=== MONTHLY DEMAND AGGREGATION ===")
     print(f"Input records: {len(df):,}")
+    print(
+        "Source date coverage: "
+        f"{source_metadata['source_first_order_date']} to "
+        f"{source_metadata['source_last_order_date']}"
+    )
     print(f"Monthly records: {len(monthly):,}")
     print(f"Products: {monthly['product_id'].nunique():,}")
     print(f"Months: {monthly['month'].nunique():,}")

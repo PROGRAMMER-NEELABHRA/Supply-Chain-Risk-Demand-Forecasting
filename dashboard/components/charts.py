@@ -6,13 +6,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from dashboard.styles.theme import (
-    ACCENT_BLUE,
-    ACCENT_GREEN,
-    ACCENT_ORANGE,
-    ACCENT_PURPLE,
-    CONFIDENCE_COLOURS,
-    DANGER_RED,
-    MODEL_COLOURS,
     get_plotly_layout,
     get_theme_tokens,
 )
@@ -53,7 +46,7 @@ def demand_time_series(
     """Line chart of actual demand over time with subtle area fill."""
     t = get_theme_tokens()
     data = df.copy()
-    fill_color = "rgba(59, 130, 246, 0.08)" if t["name"] == "dark" else "rgba(37, 99, 235, 0.08)"
+    fill_color = t["fill_blue"]
 
     if product_id is not None:
         data = data[data["product_id"] == product_id]
@@ -147,7 +140,7 @@ def demand_forecast_chart(
             x=cutoff,
             line=dict(color=t["accent_orange"], width=1.2, dash="dot"),
             annotation_text="Forecast Cutoff",
-            annotation_font=dict(color=t["accent_orange"], size=10),
+            annotation_font=dict(color=t["text_primary"], size=10),
             annotation_position="top right",
         )
 
@@ -167,18 +160,11 @@ def demand_heatmap(df: pd.DataFrame) -> go.Figure:
     )
     pivot.columns = [str(c)[:7] for c in pivot.columns]
 
-    if t["name"] == "light":
-        colorscale = [
-            [0, "#F1F5F9"],
-            [0.5, "#93C5FD"],
-            [1, "#059669"],
-        ]
-    else:
-        colorscale = [
-            [0, "rgba(17,30,53,0.5)"],
-            [0.5, "rgba(59,130,246,0.6)"],
-            [1, "#10B981"],
-        ]
+    colorscale = [
+        [0, t["heatmap_low"]],
+        [0.5, t["heatmap_mid"]],
+        [1, t["heatmap_high"]],
+    ]
 
     fig = go.Figure(
         data=go.Heatmap(
@@ -347,7 +333,10 @@ def method_donut(method_df: pd.DataFrame) -> go.Figure:
     return _apply_layout(fig, "Forecast Method Distribution", showlegend=False)
 
 
-def warning_bar(warning_df: pd.DataFrame) -> go.Figure:
+def warning_bar(
+    warning_df: pd.DataFrame,
+    title: str = "Data Quality Warnings by Category",
+) -> go.Figure:
     """Horizontal bar chart for data quality warning frequencies."""
     t = get_theme_tokens()
     label_map = {
@@ -376,7 +365,7 @@ def warning_bar(warning_df: pd.DataFrame) -> go.Figure:
     )
     return _apply_layout(
         fig,
-        "Data Quality Warnings by Category",
+        title,
         xaxis_title="Affected Products",
         height=240,
     )
@@ -464,7 +453,7 @@ def seasonality_line(df: pd.DataFrame) -> go.Figure:
     ]
     seasonal["month_name"] = seasonal["month_num"].map(lambda m: month_names[m])
 
-    fill_color = "rgba(139, 92, 246, 0.08)" if t["name"] == "dark" else "rgba(124, 58, 237, 0.08)"
+    fill_color = t["fill_purple"]
 
     fig = go.Figure(
         go.Scatter(

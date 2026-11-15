@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from config import DATACO_RAW_DATA_FILE
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -15,12 +17,7 @@ DEMAND_FILE = (
     / "monthly_demand_observed.csv"
 )
 
-RAW_FILE = (
-    PROJECT_ROOT
-    / "data"
-    / "raw"
-    / "integrated_supply_chain.csv"
-)
+RAW_FILE = DATACO_RAW_DATA_FILE
 
 OUTPUT_DIR = PROJECT_ROOT / "outputs" / "forecasts"
 OUTPUT_FILE = OUTPUT_DIR / "forecast_eligibility.csv"

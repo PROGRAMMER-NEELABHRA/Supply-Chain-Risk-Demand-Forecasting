@@ -1,13 +1,12 @@
 
 """Inspect product status values and raw order-date coverage."""
 
-from pathlib import Path
-
 import pandas as pd
 
+from config import DATACO_RAW_DATA_FILE
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-RAW_FILE = PROJECT_ROOT / "data" / "raw" / "integrated_supply_chain.csv"
+
+RAW_FILE = DATACO_RAW_DATA_FILE
 
 
 def main() -> None:

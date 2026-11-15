@@ -74,6 +74,19 @@ def test_validate_raw_data_rejects_duplicate_order_item_ids():
         validate_raw_data(dataframe)
 
 
+def test_validate_raw_data_rejects_fractional_product_ids():
+    dataframe = pd.DataFrame(
+        {
+            "order_date": ["2017-01-01"],
+            "product_id": [1.5],
+            "quantity": [10],
+        }
+    )
+
+    with pytest.raises(ValueError, match="must be integral"):
+        validate_raw_data(dataframe)
+
+
 @pytest.mark.parametrize("quantity", [0, -1])
 def test_validate_raw_data_rejects_nonpositive_quantity(quantity):
     dataframe = pd.DataFrame(

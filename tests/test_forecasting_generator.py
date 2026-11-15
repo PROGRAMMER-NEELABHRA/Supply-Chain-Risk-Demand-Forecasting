@@ -54,6 +54,29 @@ def test_forecast_recursively_uses_previous_predictions(monkeypatch):
     }
 
 
+def test_august_2017_cutoff_forecast_starts_in_september(monkeypatch):
+    monkeypatch.setattr(
+        generator,
+        "train_random_forest",
+        lambda features, target: IncrementingModel(),
+    )
+    product = observed_product(start="2015-01-01", periods=32)
+
+    forecasts, warning = generator.forecast_one_product(
+        product,
+        product["month"].max(),
+    )
+
+    assert warning is None
+    assert product["month"].max() == pd.Timestamp("2017-08-01")
+    assert [row["forecast_month"] for row in forecasts] == list(
+        pd.date_range("2017-09-01", periods=3, freq="MS")
+    )
+    assert {row["forecast_origin_month"] for row in forecasts} == {
+        pd.Timestamp("2017-08-01")
+    }
+
+
 def test_internal_gap_uses_baseline_without_imputation(monkeypatch):
     monkeypatch.setattr(
         generator,
@@ -230,13 +253,22 @@ def test_all_observed_products_receive_three_forecasts(monkeypatch, tmp_path):
 
     generator.main()
 
+    required_outputs = {
+        "future_demand_forecasts.csv",
+        "forecast_products_skipped.csv",
+        "forecast_data_warnings.csv",
+        "forecast_method_summary.csv",
+        "forecast_warning_summary.csv",
+    }
+    assert required_outputs <= {
+        path.name for path in tmp_path.iterdir() if path.is_file()
+    }
+
     forecasts = pd.read_csv(tmp_path / "future_demand_forecasts.csv")
     skipped = pd.read_csv(tmp_path / "forecast_products_skipped.csv")
     warnings = pd.read_csv(tmp_path / "forecast_data_warnings.csv")
     summary = pd.read_csv(tmp_path / "forecast_method_summary.csv")
-    warning_summary = pd.read_csv(
-        tmp_path / "forecast_warning_summary.csv"
-    )
+    warning_summary = pd.read_csv(tmp_path / "forecast_warning_summary.csv")
 
     assert forecasts["product_id"].nunique() == 118
     assert len(forecasts) == 354
