@@ -38,5 +38,8 @@ primaryColor = "#21A179"
 borderColor = "#3A4840"
 linkColor = "#A2B0A7"
 
+[client]
+toolbarMode = "viewer"
+
 [server]
 maxUploadSize = 100

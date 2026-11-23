@@ -1,106 +1,141 @@
 # Supply Chain Risk & Demand Forecasting
 
-An end-to-end supply chain analytics and demand forecasting platform built with Python, Streamlit, Pandas, Scikit-learn, and Plotly.
+An end-to-end supply chain analytics and demand forecasting project built with Python, Streamlit, Pandas, scikit-learn, and Plotly. The project combines historical DataCo-style demand analysis, a user-upload forecasting workflow, model evaluation, inventory decision support, demand-risk indicators, scenario analysis, SQL reporting, and a Power BI deliverable.
 
-The project combines two workflows:
+The application is a decision-support and analytical interface, not a production inventory or purchasing system. Forecasts, risk indicators, inventory estimates, and scenarios must be interpreted against the source data, warning messages, and documented assumptions.
 
-1. **DataCo historical analysis:** Data validation, monthly demand preparation, forecasting experiments, model evaluation, and supply chain analytics using the historical DataCo dataset.
-2. **User-provided demand forecasting:** Upload custom CSV datasets, prepare demand time series, inspect data quality, evaluate forecasting models, and generate forecasts for user-provided data.
+## Project goals
 
-The application also includes inventory management, supply chain risk analysis, scenario simulation, and interactive visualizations.
+- Prepare and audit historical product-demand data.
+- Preserve missing product-month observations instead of treating them as zero demand.
+- Compare Naive, Moving Average, and Random Forest forecasting approaches.
+- Generate forecast coverage and data-quality warnings.
+- Let users upload and prepare their own demand CSV data.
+- Present forecasts, model performance, inventory estimates, demand-risk indicators, and scenario comparisons in Streamlit.
+- Preserve reproducible SQL and Power BI components alongside the Python application.
 
----
+## Key features
 
-## Features
+- Interactive, theme-aware Streamlit dashboard.
+- DataCo demonstration data and session-based user-uploaded datasets.
+- Product-level and portfolio-level demand views.
+- Forecast eligibility, confidence, staleness, and missing-history diagnostics.
+- Rolling-origin and historical model evaluation.
+- Feature-importance and per-product error views.
+- Explicit inventory assumptions supplied by the user.
+- Explainable demand-risk indicators with no arbitrary composite risk score.
+- Deterministic forecast scenario multipliers.
+- Downloadable forecast and evaluation outputs in the upload workflow.
 
-### 1. Interactive Streamlit Dashboard
+## Dashboard pages
 
-The application contains eight dashboard pages:
+The application registers eight pages in the following sidebar groups.
 
-| Page | Functionality |
-|---|---|
-| Executive Overview | Key supply chain metrics and overall performance |
-| Demand Analytics | Historical demand trends and product-level analysis |
-| Demand Forecasting | Historical demand forecasts and forecasting results |
-| Model Performance | Model comparison and evaluation metrics |
-| Inventory Management | Inventory analysis and replenishment-related metrics |
-| Supply Chain Risk | Supply chain risk indicators and analysis |
-| Scenario Simulator | Explore alternative demand and supply scenarios |
-| User Demand Forecasting | Upload custom datasets and perform demand forecasting |
+| Group | Page | Purpose |
+|---|---|---|
+| OVERVIEW | [Executive Overview](dashboard/pages/01_executive_overview.py) | Portfolio demand, forecast commitments, data-quality KPIs, and provenance. |
+| DEMAND INTELLIGENCE | [Demand Analytics](dashboard/pages/02_demand_analytics.py) | Historical demand trends, SKU filtering, seasonality, volume concentration, and demand-regime transitions. |
+| DEMAND INTELLIGENCE | [Demand Forecasting](dashboard/pages/03_demand_forecasting.py) | Selected-SKU forecasts, forecast confidence, schedule details, and data-quality warnings. |
+| DEMAND INTELLIGENCE | [Model Performance](dashboard/pages/04_model_performance.py) | Benchmark metrics, feature importance, per-product errors, and later-period rolling evaluation. |
+| DEMAND INTELLIGENCE | [Inventory Management](dashboard/pages/05_inventory_management.py) | Stock depletion, safety stock, reorder-point, and EOQ estimates using explicit user inputs. |
+| OPERATIONS | [Supply Chain Risk](dashboard/pages/06_supply_chain_risk.py) | Explainable stale-history, short-history, fallback, gap, and backtest indicators. |
+| OPERATIONS | [Scenario Simulator](dashboard/pages/07_scenario_simulator.py) | Deterministic portfolio or product-level forecast multipliers and deltas. |
+| OPERATIONS | [User Demand Forecasting](dashboard/pages/08_user_demand_forecasting.py) | CSV upload, column mapping, validation, preparation, model comparison, and forecast generation. |
 
-### 2. User-Provided Demand Forecasting
+The first registered page, Executive Overview, is the default route at `/`.
 
-The platform includes a separate workflow for forecasting demand using user-uploaded CSV data.
+## Requirements
 
-Key capabilities include:
+The project declares:
 
-- Upload external demand datasets.
-- Prepare and validate demand data.
-- Generate product-level demand time series.
-- Inspect data quality and missing-demand patterns.
-- Examine forecasting eligibility and product-level diagnostics.
-- Evaluate forecasting approaches through backtesting.
-- Compare model performance.
-- Generate forecasts from the prepared demand history.
+- Python `>=3.11`
+- [Pandas](https://pandas.pydata.org/docs/)
+- [NumPy](https://numpy.org/doc/)
+- [Matplotlib](https://matplotlib.org/stable/)
+- [scikit-learn](https://scikit-learn.org/stable/)
+- [pytest](https://docs.pytest.org/)
+- [Streamlit](https://docs.streamlit.io/) `>=1.51.0`
+- [Plotly](https://plotly.com/python/) `>=5.22.0`
 
-The user-demand workflow is implemented separately from the original DataCo pipeline so that custom datasets do not need to replace the historical project dataset.
+The exact declarations are maintained in [requirements.txt](requirements.txt) and [pyproject.toml](pyproject.toml). The project version is `0.1.0` as declared in [pyproject.toml](pyproject.toml); the README does not infer any additional published version.
 
-### 3. Demand Forecasting and Model Evaluation
+## Installation
 
-The historical forecasting workflow includes:
+### Windows
 
-- Naive forecasting.
-- Moving Average forecasting.
-- Random Forest forecasting.
-- Recursive multi-step forecasting.
-- Rolling and historical backtesting experiments.
-- Model comparison using MAE, RMSE, and WAPE.
-- Product-level evaluation.
-- Forecast confidence and data-quality diagnostics.
-- Identification of products with insufficient or stale historical observations.
+Open PowerShell in the repository directory and run:
 
-Forecasting experiments and evaluation utilities are maintained under `src/forecasting/`.
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-### 4. Inventory Management
+If PowerShell blocks virtual-environment activation, either open PowerShell with appropriate policy permissions or run the app with the virtual environment explicitly:
 
-The dashboard includes an inventory analysis module for examining demand and inventory-related metrics.
+```powershell
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m streamlit run dashboard/app.py
+```
 
-Implementation: `src/inventory/inventory_analysis.py`
+### macOS and Linux
 
-### 5. Supply Chain Risk Analysis
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-The project includes a risk-scoring module and dashboard for analyzing supply chain risk indicators.
+## Run and access the dashboard
 
-Implementation: `src/risk/risk_score.py`
+From the repository root, with the environment active:
 
-### 6. Scenario Simulation
+```bash
+python -m streamlit run dashboard/app.py
+```
 
-The scenario module supports analysis of alternative demand and supply assumptions through the dashboard.
+The local application address is normally:
 
-Implementation: `src/scenarios/simulation.py`
+```text
+http://localhost:8501
+```
 
-These analytical modules should be evaluated against their implementation assumptions before being used for real operational decisions.
+Streamlit also prints a network address, for example `http://<computer-ip>:8501`. Open that address from another device only when the host device and the remote device can reach each other over the network and when local firewall or network rules permit the connection.
 
----
+### Local versus hosted access
 
-## Project Architecture
+- **Local:** Run Streamlit on your computer and open `localhost:8501`.
+- **Network:** Run on a network-connected computer and use the network URL printed by Streamlit.
+- **Hosted:** Requires an explicit deployment platform and configuration. No hosted deployment is established by this repository, so do not assume a public URL exists.
+
+To stop a Streamlit process started interactively, use `Ctrl+C` in the terminal that started it.
+
+## Common setup problems
+
+- **The `streamlit` command is unavailable:** Use `python -m streamlit run dashboard/app.py` or activate the virtual environment first.
+- **Imports cannot be resolved:** Run commands from the repository root so the project package paths are available.
+- **Dashboard data files are missing:** Generate the processed and forecast outputs through `python run_pipeline.py`, or restore the existing data assets.
+- **User-upload pages have no operational data:** Upload and prepare a CSV on User Demand Forecasting, run model comparison, generate forecasts, and then select the User-uploaded dataset on an operations page.
+- **Port 8501 is in use:** Stop the existing Streamlit process or start with `python -m streamlit run dashboard/app.py --server.port 8502`.
+- **Missing forecast rows:** Review the forecast warnings and eligibility information rather than assuming that a product is eligible for forecasting.
+
+## Project structure
 
 ```text
 Supply-Chain-Risk-Demand-Forecasting/
-│
 ├── dashboard/
-│   ├── app.py
-│   ├── operational_data.py
-│   ├── user_demand_forecasting.py
-│   │
+│   ├── app.py                      # Streamlit entry point and navigation
+│   ├── operational_data.py         # DataCo/user-upload operational dataset adapter
+│   ├── user_demand_forecasting.py  # Upload, preparation, backtesting, and forecast integration
 │   ├── components/
-│   │   ├── charts.py
-│   │   ├── kpi_cards.py
-│   │   └── navigation_drawer.py
-│   │
+│   │   ├── app_header.py           # Native Streamlit header branding
+│   │   ├── charts.py               # Shared Plotly chart builders
+│   │   ├── kpi_cards.py            # KPI and page-header components
+│   │   └── sidebar.py              # Shared sidebar selectors
 │   ├── data/
-│   │   └── loader.py
-│   │
+│   │   └── loader.py               # Cached dashboard CSV loaders
 │   ├── pages/
 │   │   ├── 01_executive_overview.py
 │   │   ├── 02_demand_analytics.py
@@ -110,122 +145,228 @@ Supply-Chain-Risk-Demand-Forecasting/
 │   │   ├── 06_supply_chain_risk.py
 │   │   ├── 07_scenario_simulator.py
 │   │   └── 08_user_demand_forecasting.py
-│   │
-│   └── styles/
-│
+│   └── styles/                     # Theme palette and Plotly layout
 ├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── quality_review/
-│
-├── dataset/
-│   └── processed/
-│       └── processed/
-│           └── dataco/
-│
-├── docs/
-│
+│   ├── raw/                        # Configured source and raw assets
+│   ├── processed/                  # Rebuilt monthly demand artifacts
+│   └── quality_review/             # Missingness and lifecycle review artifacts
+├── docs/                           # Technical notes and historical results
 ├── outputs/
-│   └── forecasts/
-│
+│   ├── forecasts/                  # Forecast and evaluation outputs
+│   ├── inventory/                  # Configured inventory output location
+│   ├── risk/                       # Configured risk output location
+│   ├── scenarios/                  # Configured scenario output location
+│   └── handoff/
 ├── sql/
 │   ├── queries.sql
-│   └── reports/
-│
+│   └── reports/                    # Data-quality and SQL investigation queries
 ├── src/
 │   ├── analysis/
+│   │   ├── build_monthly_demand.py
+│   │   └── analyze_demand_shift.py
 │   ├── data/
-│   ├── database/
+│   │   ├── loaders.py
+│   │   ├── validators.py
+│   │   └── user_demand.py
+│   ├── database/                   # Local database inspection utilities
 │   ├── forecasting/
+│   │   ├── baseline.py
+│   │   ├── models.py
+│   │   ├── run_random_forest_experiment.py
+│   │   ├── generate_future_forecasts.py
+│   │   ├── evaluation.py
+│   │   ├── forecasting_improvement_experiment_v2.py
+│   │   └── user_demand_backtesting.py
 │   ├── inventory/
+│   │   └── inventory_analysis.py
 │   ├── preprocessing/
+│   │   ├── cleaning.py
+│   │   ├── feature_engineering.py
+│   │   └── user_demand_preparation.py
 │   ├── risk/
+│   │   └── risk_score.py
 │   ├── scenarios/
-│   └── visualization/
-│
-├── tests/
-│
-├── Supply_Chain_PowerBI/
-│
-├── config.py
-├── main.py
-├── run_pipeline.py
+│   │   └── simulation.py
+│   └── visualization/              # Pipeline visualization helpers
+├── tests/                          # pytest coverage for modules and dashboard workflows
+├── Supply_Chain_PowerBI/           # Power BI project and prepared data
+├── config.py                       # Configured project and data paths
+├── run_pipeline.py                 # Four-stage historical pipeline runner
+├── main.py                         # CSV inspection utility
 ├── requirements.txt
-└── pyproject.toml
+├── pyproject.toml
+└── README.md
 ```
 
----
+## System architecture
 
-## Dataset and Data Quality
+```mermaid
+flowchart LR
+    A[DataCo raw CSV] --> B[Data loading and validation]
+    B --> C[Monthly product-demand aggregation]
+    C --> D[Observed-history artifacts]
+    D --> E[Feature engineering]
+    E --> F[Naive and Moving Average benchmarks]
+    E --> G[Random Forest training]
+    F --> H[Backtesting and metrics]
+    G --> H
+    D --> I[Forecast eligibility and fallback selection]
+    I --> J[Future forecast CSVs and warnings]
+    J --> K[Cached Streamlit loaders]
+    K --> L[Eight-page Streamlit dashboard]
 
-The original DataCo analysis uses an integrated supply chain dataset containing order, product, sales, and logistics information.
+    M[User CSV] --> N[CSV parsing and mapping]
+    N --> O[Validation and normalized periods]
+    O --> P[Rolling-origin backtesting]
+    P --> Q[Model selection and forecasts]
+    Q --> R[Session-based operational data]
+    R --> L
 
-The configured forecasting source is:
+    J --> S[Inventory planning]
+    J --> T[Supply-chain risk review]
+    J --> U[Deterministic scenarios]
+    R --> S
+    R --> T
+    R --> U
+```
+
+## Data loading and preprocessing
+
+### Historical DataCo workflow
+
+The configured historical source is [config.py](config.py):
 
 ```text
 data/raw/integrated_supply_chain_until_aug2017.csv
 ```
 
-The configured source contains:
+The configured August 2017 source is verified to contain:
 
 - 166,773 transaction rows.
-- 87 products.
-- Coverage from January 1, 2015 through August 31, 2017.
+- 34 columns.
+- 87 distinct product IDs.
+- Order dates from January 1, 2015 through August 31, 2017.
 
-The original `integrated_supply_chain.csv` is preserved as a backup.
+The repository also preserves [integrated_supply_chain.csv](data/raw/integrated_supply_chain.csv) as the full original source. It contains 180,519 rows and 118 distinct products and includes additional records from September 2017 through January 2018.
 
-### Data Quality Approach
+The two source files are not interchangeable. `config.py` deliberately selects the August 2017 file for the configured pipeline. The full source is preserved for investigation and historical artifact context, but it is not the active configuration.
 
-The project distinguishes observed demand from missing product-month observations.
+The historical `run_random_forest_experiment.py` workflow uses an explicitly defined training period ending in October 2016 and a holdout period from November 2016 through January 2017. Its holdout is an in-code historical evaluation window; later data in the full source is not silently added as additional holdout data. Separate later-period experiment scripts exist, but they use their own source files and eligibility rules and are not evidence that their results belong to the implemented future forecast generator.
 
-An absent product-month is not automatically interpreted as zero demand.
+[src/analysis/build_monthly_demand.py](src/analysis/build_monthly_demand.py) validates the raw order data, parses order dates, converts quantity values, and groups valid transaction items by `month` and `product_id`.
 
-The analysis includes:
+Monthly aggregation adds:
 
-- Duplicate record checks.
-- Order-item identifier validation.
-- Product identifier validation.
-- Missing-value analysis.
-- Internal missing-month detection.
-- Product lifecycle analysis.
-- Demand coverage analysis.
-- Forecast eligibility diagnostics.
-- Stale-history identification.
+- `demand_units`: sum of quantity.
+- `transaction_rows`: number of transaction rows.
+- `unique_orders`: number of unique order identifiers when `order_id` is available.
 
-Quality-review datasets and reports are maintained under `data/quality_review/`.
+The builder creates observed product-month rows only. It does not add a demand value for every product-month in a global grid. The quality review creates a separate panel to classify missing combinations.
 
-**Important:** Existing generated outputs may describe an earlier source dataset. They must be regenerated and validated before being interpreted as results from the August 2017 source.
+Missing periods are classified as:
 
----
+- Before the first observed product month.
+- After the last observed product month.
+- Missing internally between a product's first and last observed month.
 
-## Forecasting Methodology
+These conditions remain unknown; they are not silently treated as confirmed zero demand. Confirmed-zero logic belongs only to the user-demand workflow when the source coverage and zero-demand options explicitly establish it.
 
-The original DataCo forecasting experiment compares three approaches:
+The rebuild writes monthly and quality artifacts under [data/processed](data/processed) and [data/quality_review](data/quality_review). [dashboard/data/loader.py](dashboard/data/loader.py) provides cached dashboard functions that read those generated CSV files by resolved project-relative paths. It uses file modification time and size as part of the cache key, so regenerated files are reloaded without reconstructing the monthly-demand or forecast logic inside page scripts.
 
-1. Naive forecasting.
-2. Moving Average forecasting.
-3. Random Forest forecasting.
+### User-upload workflow
 
-The historical experiment uses a three-month forecast horizon.
+[dashboard/user_demand_forecasting.py](dashboard/user_demand_forecasting.py) and [src/preprocessing/user_demand_preparation.py](src/preprocessing/user_demand_preparation.py) provide the upload workflow:
 
-The Random Forest configuration includes:
+1. Accept a UTF-8 CSV with a `.csv` extension.
+2. Inspect headers and suggest date, demand, product, and category columns.
+3. Parse dates and demand values.
+4. Normalize periods to daily, weekly, or monthly frequency.
+5. Aggregate transaction rows if requested.
+6. Preserve unknown periods where observations are missing.
+7. Produce a data-quality report and per-series diagnostics.
+8. Run eligible rolling-origin backtests.
+9. Generate forecasts and expose them as session-only operational data.
 
-- 200 trees.
+An uploaded source is not written over the DataCo CSV or forecast files. Operational pages can switch between DataCo and the verified user-upload bundle through existing session state.
+
+## Forecasting methodology
+
+### Feature engineering
+
+[src/preprocessing/feature_engineering.py](src/preprocessing/feature_engineering.py) creates leakage-safe features:
+
+- Lags: 1, 2, 3, 6, and 12 months.
+- Prior three-period rolling mean.
+- Prior six-period rolling mean.
+- Month number.
+- Quarter.
+
+The target is not included in its own lag or rolling feature. Rolling features shift first and therefore use earlier observations only.
+
+### Naive forecasting
+
+[src/forecasting/baseline.py](src/forecasting/baseline.py) implements the Naive baseline as the previous observation.
+
+### Moving Average forecasting
+
+[src/forecasting/baseline.py](src/forecasting/baseline.py) implements a three-period rolling average for the baseline workflow. The future forecast generator uses the mean of the latest available actual observations, limited to three records.
+
+### Random Forest forecasting
+
+[src/forecasting/models.py](src/forecasting/models.py) uses `RandomForestRegressor` with:
+
+- 200 estimators.
 - Maximum depth of 5.
 - Random state of 42.
-- Lag features: 1, 2, 3, 6, and 12 months.
-- Rolling mean features: 3 and 6 months.
-- Month and quarter features.
+- Parallel fitting through `n_jobs=-1`.
 
-Forecasting is recursive: each predicted value becomes an input for the next forecast step.
+### Recursive future forecasts
 
-Negative predictions are clipped at zero.
+[src/forecasting/generate_future_forecasts.py](src/forecasting/generate_future_forecasts.py) is the tiered forecast generator:
 
-### Historical Backtesting Results
+1. Split observed history into contiguous monthly runs.
+2. Use recursive Random Forest forecasting when the latest contiguous run has more than 12 observations.
+3. Use the latest up-to-three-observation mean as a Moving Average fallback when at least two observed records are available.
+4. Use the latest observed value as a Naive fallback for a single observed record.
+5. Generate three forecast periods.
+6. Append each Random Forest prediction to the forecast history for the next recursive step.
+7. Clip negative Random Forest predictions to zero.
 
-The original documented backtest trains through October 2016 and predicts November 2016 through January 2017 for 54 products.
+Missing months break a contiguous run. They are not inserted into the forecast training history as zeros.
 
-These are historical results from the previous source dataset, not a validation of forecasts generated from the August 2017 replacement source.
+### Forecast eligibility and confidence
+
+The implemented tiering is:
+
+| Available history | Method | Confidence |
+|---|---|---|
+| Latest contiguous run greater than 12 observed months | Recursive Random Forest | HIGH |
+| At least two observed records, below the RF tier | Moving Average baseline | MEDIUM |
+| One observed record | Naive baseline | LOW |
+| No observed history | No forecast; product is identified as skipped | Unavailable |
+
+Confidence is a data-quality heuristic, not a calibrated probability or guarantee of forecast accuracy.
+
+### Backtesting and metrics
+
+[src/forecasting/evaluation.py](src/forecasting/evaluation.py) provides the metric calculations. The historical [run_random_forest_experiment](src/forecasting/run_random_forest_experiment.py) workflow requires complete, consecutive monthly coverage across the training and test windows.
+
+- **MAE:** Mean Absolute Error, in demand units.
+- **RMSE:** Root Mean Squared Error, in demand units.
+- **WAPE:** Weighted Absolute Percentage Error. It is unavailable when the denominator is zero or not sufficiently comparable.
+
+The complete-history rolling and historical evaluation utilities remain separate from the future tiered forecast generator. Experiment outputs should not be presented as production-validated performance.
+
+## Historical benchmark results
+
+The existing [docs/forecasting_results.md](docs/forecasting_results.md) preserves a historical benchmark for a previous source artifact:
+
+- Training through October 2016.
+- Test period: November 2016 through January 2017.
+- 54 complete-history products.
+- 162 product-month test observations.
+
+Pooled historical results:
 
 | Model | MAE | RMSE | WAPE |
 |---|---:|---:|---:|
@@ -233,269 +374,199 @@ These are historical results from the previous source dataset, not a validation 
 | Moving Average | 17.29 | 31.74 | 8.03% |
 | Random Forest | 15.55 | 27.17 | 7.22% |
 
-MAE and RMSE are measured in demand units. WAPE is expressed as a percentage.
+These metrics describe a historical experiment from an earlier generated source and must not be presented as validation of the currently configured source or live forecasts. The documented source-caveat report explains that the pipeline and dependent outputs may require regeneration after the source changed.
 
-### Forecast Confidence
+Additional benchmark context is maintained in [docs/forecast_confidence_review.md](docs/forecast_confidence_review.md).
 
-The forecasting workflow distinguishes between trained model predictions and baseline estimates.
+### Later experiments
 
-- Random Forest is used when sufficient consecutive historical observations are available.
-- Moving Average is used as a fallback for products with limited but usable history.
-- Naive forecasting is used for products with only one observed record.
+The repository also contains separate later-period and rolling-origin experiment code:
 
-Stale histories and internal missing-month patterns are identified through diagnostics.
+- [forecasting_improvement_experiment.py](src/forecasting/forecasting_improvement_experiment.py) and [forecasting_improvement_experiment_v2.py](src/forecasting/forecasting_improvement_experiment_v2.py) rescore stable historical origins within a predeclared regime.
+- [compare_later_period_models.py](src/forecasting/compare_later_period_models.py) compares model configurations over a later May–October 2017 test window.
+- [evaluate_later_period.py](src/forecasting/evaluate_later_period.py) provides a one-step-ahead later-period evaluation starting after April 2017.
 
-A forecast being generated does not automatically mean it is reliable. Confidence indicators and data-quality warnings should be considered when interpreting results.
+These experiments are not the currently implemented future forecast generator. Their cohorts, source files, horizons, and eligibility rules differ, so their results should not be combined into one portfolio metric or described as production performance. The existing confidence review records a separate 12-origin V2 comparison for the stable period: Naive 22.07 MAE / 10.39% pooled WAPE, Moving Average 18.65 / 8.78%, and Random Forest 18.03 / 8.48%. It explicitly treats those results as comparative historical evidence, not calibrated confidence or future accuracy.
 
----
+## Inventory planning
 
-## Forecasting Experiments
+[src/inventory/inventory_analysis.py](src/inventory/inventory_analysis.py) provides exploratory calculations for the selected operational dataset:
 
-Additional forecasting experiments are maintained separately from the original pipeline.
+- Observed and forecast average demand per period.
+- Lead-time demand distributed across the selected forecast period.
+- Safety stock using user-entered lead-time variability and a normal quantile.
+- Reorder point as lead-time demand plus supported safety stock.
+- EOQ using user-entered ordering and annual holding costs.
+- Depletion status and projected stockout dates using uniform demand within each forecast period.
 
-Important modules include:
+Safety stock requires at least 12 contiguous observed periods and a supplied lead-time standard deviation. EOQ requires ordering and holding cost inputs. Current stock and supplier lead time are not inferred from DataCo source fields.
 
-```text
-src/forecasting/
-├── forecasting_improvement_experiment.py
-├── forecasting_improvement_experiment_v2.py
-├── user_demand_backtesting.py
-├── user_demand_diagnostics.py
-├── user_demand_models.py
-├── evaluate_later_period.py
-├── evaluate_multiple_products.py
-├── evaluate_common_cutoff.py
-└── run_random_forest_experiment.py
-```
+These outputs are estimates based on explicit assumptions. They are not purchasing or replenishment recommendations until validated with real operational balances and supply terms.
 
-These modules support experimental model evaluation, product-level diagnostics, backtesting, and forecasting improvements.
+## Supply-chain risk indicators
 
-Experimental results should not automatically be treated as production model performance. Model changes should be evaluated using appropriate historical test periods and leakage-free validation.
+[src/risk/risk_score.py](src/risk/risk_score.py) creates explainable, independent indicators:
 
----
+- Stale history.
+- Short history.
+- Baseline fallback.
+- Internal missing periods.
+- Intermittent or irregular demand patterns for uploaded data.
+- Trend-screening evidence for uploaded data.
+- Comparable backtest evidence when sufficient origins exist.
 
-## Installation
+The DataCo risk view does not claim to measure supplier reliability, logistics bottlenecks, geopolitical exposure, single-source dependency, or actual disruptions. The implementation does not calculate an arbitrary composite risk score.
 
-### Requirements
+For uploaded datasets, the risk register reads the normalized demand diagnostics and the existing rolling-origin comparison. Unknown periods remain unknown and are not treated as confirmed zeros.
 
-- Python 3.11 or later.
-- Git.
-- Windows, macOS, or Linux.
+## Scenario simulation
 
-### 1. Clone the repository
+[src/scenarios/simulation.py](src/scenarios/simulation.py) applies deterministic multipliers to saved forecast values:
 
-```bash
-git clone https://github.com/PROGRAMMER-NEELABHRA/Supply-Chain-Risk-Demand-Forecasting.git
+- Optimistic: default `1.10`.
+- Pessimistic: default `0.90`.
+- User-defined: default `1.00`.
 
-cd Supply-Chain-Risk-Demand-Forecasting
-```
+The module produces unit and percentage deltas for each forecast period. Portfolio scenarios aggregate product rows by period before recalculating totals. Percentage deltas are unavailable when the baseline period is zero.
 
-### 2. Create a virtual environment
+The simulator does not use residual uncertainty as a probability distribution. It does not perform Monte Carlo simulation, estimate demand elasticity, or model supplier shocks.
 
-Windows PowerShell:
+## Run the historical pipeline
 
-```powershell
-python -m venv .venv
+Launching Streamlit and running the historical pipeline are separate operations:
 
-.\.venv\Scripts\Activate.ps1
-```
+- `python -m streamlit run dashboard/app.py` starts the interactive dashboard only. It does not rebuild monthly demand or regenerate forecast CSVs.
+- `python run_pipeline.py` runs the backend historical pipeline only. It rebuilds the configured monthly-demand artifacts, performs the historical evaluation workflow, generates future forecast outputs, and builds demonstration visualizations. It does not start a web server.
 
-macOS/Linux:
+The complete [run_pipeline.py](run_pipeline.py) runner executes four stages:
 
-```bash
-python -m venv .venv
+1. Build monthly demand.
+2. Run the recursive Random Forest and baseline evaluation workflow.
+3. Generate future tiered forecasts and warnings.
+4. Build demonstration visualizations.
 
-source .venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
-python -m pip install --upgrade pip
-
-pip install -r requirements.txt
-```
-
----
-
-## Run the Streamlit Dashboard
-
-From the repository root:
-
-```bash
-streamlit run dashboard/app.py
-```
-
-The dashboard provides navigation between all eight analytical pages.
-
----
-
-## Run the Historical Data Pipeline
-
-The original DataCo pipeline can be executed from the repository root:
+Run from the repository root:
 
 ```bash
 python run_pipeline.py
 ```
 
-The pipeline coordinates the historical data preparation, forecasting, and visualization stages.
+The runner stops at the first failed stage and leaves its stage status in the terminal output.
 
-Individual modules can also be executed independently where appropriate.
-
-For example:
+Individual modules can also be called where appropriate:
 
 ```bash
 python -m src.analysis.build_monthly_demand
-
 python -m src.forecasting.run_random_forest_experiment
-
 python -m src.forecasting.generate_future_forecasts
-
 python -m src.visualization.forecast_demo
 ```
 
-Run the pipeline using the configured source and review its outputs before interpreting them as current results.
+Running the pipeline regenerates forecast and data-quality outputs. Review the source configuration and generated timestamps before interpreting results.
 
----
+The `main.py` entry point is a CSV inspection utility, not the Streamlit dashboard. It requires a file argument:
 
-## SQL Analysis
-
-The project includes SQL-based analysis of the DataCo supply chain database.
-
-Location:
-
-```text
-sql/
-├── queries.sql
-└── reports/
-    ├── catalogue_coverage_by_month.sql
-    ├── check_late_period_products.sql
-    ├── check_product_sales_values.sql
-    ├── delivery_performance_by_shipping_mode.sql
-    ├── demand_data_quality_check.sql
-    ├── monthly_product_demand.sql
-    ├── monthly_sales_trends.sql
-    ├── order_structure_check.sql
-    ├── product_ids_by_month.sql
-    └── verify_sales_calculation.sql
+```bash
+python main.py --file data/raw/integrated_supply_chain_until_aug2017.csv
 ```
-
-The SQL analysis investigates:
-
-- Product catalogue coverage.
-- Monthly sales trends.
-- Product-level demand.
-- Order structure.
-- Sales calculations.
-- Product-sales relationships.
-- Delivery performance.
-- Late delivery risk.
-- Data quality.
-
-The database and source CSV copies are local data assets and are not included in the Git repository.
-
-Findings from the investigation are documented in:
-
-```text
-docs/sql_data_quality_investigation.md
-```
-
----
-
-## Power BI
-
-The repository also includes a Power BI project:
-
-```text
-Supply_Chain_PowerBI/
-```
-
-The dashboard project file is:
-
-```text
-Supply_Chain_PowerBI/Documentation/dashboard.pbix
-```
-
-Prepared data files are maintained under:
-
-```text
-Supply_Chain_PowerBI/Data/
-```
-
-The Power BI deliverable complements the Python and Streamlit analytical workflows.
-
----
 
 ## Testing
 
-The project uses `pytest` for automated testing.
+The test suite is located under [tests](tests) and covers data loading, validation, preprocessing, feature engineering, forecasting, backtesting, pipeline orchestration, inventory analysis, risk scoring, scenario simulation, and dashboard workflows.
 
-Run the complete test suite:
+Run the complete suite from the repository root:
 
 ```bash
 python -m pytest -q
 ```
 
-**Latest verified test result:**
+Run a focused test file while developing a specific area:
 
-```text
-327 passed
+```bash
+python -m pytest tests/test_scenario_simulation.py -q
+python -m pytest tests/test_user_demand_forecasting_page.py -q
 ```
 
-This result was obtained after the dependency cleanup and the latest project changes.
+The repository does not claim a current complete-suite pass count unless that suite has been run in the current environment.
 
-Tests cover data validation, preprocessing, forecasting, backtesting, dashboard workflows, inventory analysis, risk scoring, scenario simulation, and related functionality.
+## SQL analysis
 
----
+[sql/queries.sql](sql/queries.sql) and [sql/reports](sql/reports) contain SQL analysis for:
 
-## Documentation
+- Catalogue coverage by month.
+- Monthly sales trends.
+- Product-level demand.
+- Order structure.
+- Sales and product calculations.
+- Product IDs by month.
+- Late delivery risk.
+- Delivery performance.
+- Data-quality checks.
 
-Additional project documentation is maintained under `docs/`.
+Findings and caveats are documented in [docs/sql_data_quality_investigation.md](docs/sql_data_quality_investigation.md).
 
-Important documents include:
+The SQL assets are local analytical resources. The repository documentation should be used to verify which database or source snapshot supplied a particular report.
 
-- `PROJECT_CLEANUP_AUDIT.md` — project cleanup review.
-- `forecasting_results.md` — historical forecasting results.
-- `forecast_confidence_review.md` — forecast confidence investigation.
-- `dataco_operations_modules.md` — DataCo operational modules.
-- `sql_data_quality_investigation.md` — SQL-based data quality findings.
+## Power BI
 
----
+The repository includes:
 
-## Limitations and Considerations
+- [Supply_Chain_PowerBI/Documentation/dashboard.pbix](Supply_Chain_PowerBI/Documentation/dashboard.pbix)
+- [Supply_Chain_PowerBI/Data](Supply_Chain_PowerBI/Data)
 
-- The original DataCo forecasting source ends in August 2017. Forecast dates from this dataset are historical, not live demand predictions.
-- Existing outputs may describe an earlier dataset until the pipeline and dependent analyses are regenerated.
-- Missing product-month observations cannot automatically be interpreted as zero demand.
-- Products with insufficient consecutive history may use baseline forecasting methods rather than trained Random Forest models.
-- Stale historical observations reduce forecast reliability.
-- User-uploaded datasets must be checked for appropriate date, product, and demand information before forecasting.
-- Backtesting performance does not guarantee future forecasting accuracy.
-- Inventory and supply chain recommendations should be validated against actual operational data before business use.
-- Experimental models and scenario results should not be treated as production-validated decisions without further evaluation.
+The Power BI deliverable complements the Python and Streamlit workflows. Prepared CSV files are separate analytical artifacts and should not be assumed to represent a live or automatically refreshing data source.
 
----
+## Technical documentation
 
-## Technology Stack
+Keep these existing project documents for detailed context:
 
-| Technology | Purpose |
+- [docs/forecasting_results.md](docs/forecasting_results.md) — historical benchmark and forecast handoff.
+- [docs/forecast_confidence_review.md](docs/forecast_confidence_review.md) — confidence, fallback, and evaluation review.
+- [docs/dataco_operations_modules.md](docs/dataco_operations_modules.md) — inventory, risk, and scenario behavior.
+- [docs/forecasting_data_contract.md](docs/forecasting_data_contract.md) — forecasting data contracts.
+- [docs/sql_data_quality_investigation.md](docs/sql_data_quality_investigation.md) — SQL quality investigation.
+- [docs/PROJECT_CLEANUP_AUDIT.md](docs/PROJECT_CLEANUP_AUDIT.md) — project cleanup and consistency review.
+
+## Technology stack
+
+| Technology | Use |
 |---|---|
-| Python | Core application and analytics |
-| Pandas | Data processing |
-| NumPy | Numerical computation |
-| Scikit-learn | Machine learning and forecasting experiments |
-| Streamlit | Interactive dashboard |
-| Plotly | Interactive visualizations |
-| Matplotlib | Static charts |
-| SQLite | Local database analysis |
-| SQL | Data investigation and reporting |
-| Power BI | Business intelligence dashboard |
-| Pytest | Automated testing |
+| Python 3.11+ | Core application and analytics |
+| Pandas | Tabular data loading and transformation |
+| NumPy | Numerical calculations |
+| scikit-learn | Random Forest forecasting |
+| Streamlit | Multi-page dashboard and native sidebar navigation |
+| Plotly | Interactive charts |
+| Matplotlib | Static pipeline visualizations |
+| pytest | Automated tests |
+| SQL / SQLite-related assets | Data investigation and reporting |
+| Power BI | Complementary business-intelligence deliverable |
 
----
+## Limitations and responsible interpretation
 
-## Project Objective
+- The configured DataCo source ends in August 2017, so forecast periods and historical cutoffs are historical demonstrations rather than live predictions.
+- Existing generated outputs may be stale relative to source files. Regenerate and validate them before interpreting current results.
+- Missing product-month observations are not inferred to be zero demand.
+- Baseline and fallback forecasts are not equivalent to validated Random Forest predictions.
+- Backtest performance does not guarantee future accuracy.
+- Confidence labels describe history and data quality, not calibrated forecast probability.
+- Inventory estimates depend on user-supplied stock, lead-time, variability, ordering, and holding assumptions.
+- Supply-chain risk indicators do not establish supplier reliability, geopolitical exposure, logistics capacity, or actual disruption.
+- Scenario outputs are deterministic multipliers, not uncertainty distributions or causal estimates.
+- User-uploaded forecasts depend on the uploaded coverage, frequency, and eligibility of the selected series.
 
-The objective of this project is to demonstrate an integrated supply chain analytics and demand forecasting workflow, combining historical data analysis, forecasting experiments, data-quality diagnostics, inventory analysis, risk assessment, scenario simulation, and user-provided demand forecasting in an interactive application.
+## Developer guidance
 
-The project emphasizes transparent forecasting evaluation, careful treatment of missing demand, reproducible analysis, and clear communication of model limitations.
+- Start with [dashboard/app.py](dashboard/app.py) for navigation and native application configuration.
+- Add or change a dashboard page under [dashboard/pages](dashboard/pages), then register it in `dashboard/app.py`.
+- Reuse [dashboard/components/charts.py](dashboard/components/charts.py), [dashboard/components/kpi_cards.py](dashboard/components/kpi_cards.py), and [dashboard/styles](dashboard/styles) for consistent UI behavior.
+- Keep new data loading on cached [dashboard/data/loader.py](dashboard/data/loader.py) functions where appropriate.
+- Keep business calculations in `src/`, and keep page scripts focused on loading, controls, and presentation.
+- Validate missing periods explicitly; do not fill absent product-month rows with demand zeros.
+- Keep forecast confidence, skipped products, warnings, and unavailable metrics visible.
+- Add focused tests under [tests](tests) when changing data contracts or page behavior.
+- Run the relevant tests and `git diff --check` before submitting changes.
+
+## Project objective
+
+The project demonstrates a transparent supply chain analytics workflow that connects source validation, monthly demand preparation, baseline and machine-learning forecasting, evaluation, user-upload forecasting, inventory estimates, demand-risk indicators, scenarios, SQL, Power BI, and an interactive web dashboard.

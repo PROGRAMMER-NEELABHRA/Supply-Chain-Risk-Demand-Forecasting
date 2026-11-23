@@ -21,7 +21,7 @@ def page_header(
     if category:
         category_html = (
             f'<div style="font-size:0.75rem;font-weight:600;letter-spacing:0.06em;'
-            f'text-transform:uppercase;color:var(--accent-blue);margin-bottom:0.2rem;">'
+            f'text-transform:uppercase;color:var(--text-muted);margin-bottom:0.2rem;">'
             f'{category}</div>'
         )
 
@@ -30,7 +30,7 @@ def page_header(
         subtitle_html = f'<p style="font-size:0.88rem;color:var(--text-muted);margin:0.25rem 0 0 0;">{subtitle}</p>'
 
     header_html = f"""
-    <div style="margin-bottom: 1.5rem;">
+    <div style="margin-bottom: 0.75rem;">
         {category_html}
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
             <h1 style="margin:0;display:flex;align-items:center;gap:0.75rem;">
@@ -42,7 +42,7 @@ def page_header(
     </div>
     """
     st.markdown(header_html, unsafe_allow_html=True)
-    st.markdown("<hr style='margin:0 0 1.5rem 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin:0 0 1rem 0;'>", unsafe_allow_html=True)
 
 
 def kpi_row(metrics: List[Dict[str, Any]]) -> None:

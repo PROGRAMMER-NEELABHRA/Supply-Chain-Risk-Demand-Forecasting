@@ -6,7 +6,6 @@ from typing import Optional
 import pandas as pd
 import streamlit as st
 
-
 def render_sidebar_header() -> None:
     """No-op: Application title and theme toggle are removed from the navigation menu."""
     pass

@@ -29,15 +29,25 @@ warnings_df = load_forecast_data_warnings()
 # Sidebar Filters
 # ---------------------------------------------------------------------------
 
-st.sidebar.markdown("### SKU Inspection")
+demand_available = not demand.empty
+forecast_available = not forecasts.empty
+selected_product = None
 
-all_products = sorted(forecasts["product_id"].unique().tolist())
-selected_product = st.sidebar.selectbox(
-    "Target Product SKU",
-    all_products,
-    format_func=lambda pid: f"Product {pid}",
-    key="fc_product",
-)
+if forecast_available:
+    st.sidebar.markdown("### SKU Inspection")
+
+    all_products = sorted(
+        forecasts["product_id"].dropna().unique().tolist()
+    )
+    if all_products:
+        selected_product = st.sidebar.selectbox(
+            "Target Product SKU",
+            all_products,
+            format_func=lambda pid: f"Product {pid}",
+            key="fc_product",
+        )
+    else:
+        st.sidebar.info("No product forecast rows are available.")
 
 # ---------------------------------------------------------------------------
 # Page Header
@@ -46,9 +56,17 @@ selected_product = st.sidebar.selectbox(
 page_header(
     title="Demand Forecasting",
     subtitle=(
-        f"Forecast origin: {demand['month'].max():%b %Y}. "
-        f"Forecast horizon: {forecasts['forecast_month'].min():%b %Y} – "
-        f"{forecasts['forecast_month'].max():%b %Y}."
+        (
+            f"Forecast origin: {demand['month'].max():%b %Y}. "
+            if demand_available
+            else "Forecast origin: Unavailable. "
+        )
+        + (
+            f"Forecast horizon: {forecasts['forecast_month'].min():%b %Y} – "
+            f"{forecasts['forecast_month'].max():%b %Y}. "
+            if forecast_available
+            else "Forecast horizon: Unavailable."
+        )
     ),
     category="DEMAND INTELLIGENCE",
     badge_text="Operational Forecast",
@@ -62,6 +80,31 @@ st.info(
     "performance."
 )
 
+if not forecast_available:
+    if demand_available:
+        st.info(
+            "No forecast data is currently available. "
+            f"Historical demand is available from "
+            f"{demand['month'].min():%b %Y} through "
+            f"{demand['month'].max():%b %Y}. "
+            "Forecast-dependent KPIs, charts, and the forecast register "
+            "are unavailable until forecast rows are generated."
+        )
+    else:
+        st.info(
+            "No forecast data or historical demand data is currently available. "
+            "Generate forecast results and load historical demand records "
+            "before reviewing this page."
+        )
+    st.stop()
+
+if not demand_available:
+    st.info(
+        "No historical demand data is available. Forecast-dependent model "
+        "results remain available, but observed-history depth and forecast "
+        "history overlays are unavailable."
+    )
+
 # ---------------------------------------------------------------------------
 # Product-Specific KPIs
 # ---------------------------------------------------------------------------
@@ -73,10 +116,9 @@ if not prod_fc.empty:
     model_used = prod_fc["model_name"].iloc[0]
     confidence = prod_fc["forecast_confidence"].iloc[0]
     method = prod_fc["forecast_method"].iloc[0]
-    obs_months = int(prod_fc["observed_history_months"].iloc[0])
     total_fc_demand = float(prod_fc["forecast_demand"].sum())
 
-    kpi_row([
+    kpi_metrics = [
         {
             "label": f"Assigned Model (SKU {selected_product})",
             "value": model_used,
@@ -92,19 +134,22 @@ if not prod_fc.empty:
             ),
             "provenance": "data_quality_status",
         },
-        {
+    ]
+    if demand_available:
+        obs_months = int(prod_fc["observed_history_months"].iloc[0])
+        kpi_metrics.append({
             "label": "Observed History Depth",
             "value": f"{obs_months} Months",
             "help": "Total months of actual transaction records available for this SKU.",
             "provenance": "monthly_demand_observed.csv",
-        },
-        {
-            "label": "Cumulative 3M Demand",
-            "value": f"{total_fc_demand:,.1f} units",
-            "help": "Sum of predicted monthly units across the 3-month forward horizon.",
-            "provenance": "Forecast projection sum",
-        },
-    ])
+        })
+    kpi_metrics.append({
+        "label": "Cumulative 3M Demand",
+        "value": f"{total_fc_demand:,.1f} units",
+        "help": "Sum of predicted monthly units across the 3-month forward horizon.",
+        "provenance": "Forecast projection sum",
+    })
+    kpi_row(kpi_metrics)
 
     st.divider()
 
@@ -112,8 +157,20 @@ if not prod_fc.empty:
     # Forecast Trajectory Chart
     # ---------------------------------------------------------------------------
 
-    fig = demand_forecast_chart(demand, forecasts, selected_product)
-    st.plotly_chart(fig, width="stretch")
+    if demand_available:
+        fig = demand_forecast_chart(demand, forecasts, selected_product)
+        st.plotly_chart(
+            fig,
+            width="stretch",
+            alt=(
+                f"Observed demand and the three-month forecast for Product "
+                f"{selected_product}, with forecasts from "
+                f"{prod_fc['forecast_month'].min():%b %Y} through "
+                f"{prod_fc['forecast_month'].max():%b %Y}. The horizontal axis is "
+                "month and the vertical axis is demand units; solid markers show "
+                "actual history and the dashed line shows the forward forecast."
+            ),
+        )
 
     # ---------------------------------------------------------------------------
     # Forecast Schedule Table & Quality Notices
@@ -148,9 +205,18 @@ if not prod_fc.empty:
 
         def _fmt_confidence(val: str) -> str:
             mapping = {
-                "HIGH": "color: var(--accent-green); font-weight: 600;",
-                "MEDIUM": "color: var(--accent-orange); font-weight: 600;",
-                "LOW": "color: var(--danger-red); font-weight: 600;",
+                "HIGH": (
+                    "color: var(--text-primary); font-weight: 600;"
+                    "border-left: 3px solid var(--accent-green);"
+                ),
+                "MEDIUM": (
+                    "color: var(--text-primary); font-weight: 600;"
+                    "border-left: 3px solid var(--accent-orange);"
+                ),
+                "LOW": (
+                    "color: var(--text-primary); font-weight: 600;"
+                    "border-left: 3px solid var(--danger-red);"
+                ),
             }
             return mapping.get(val, "")
 
@@ -188,11 +254,33 @@ st.divider()
 
 st.markdown("### Portfolio Forecast Distribution")
 
-col1, col2 = st.columns(2, gap="medium")
-with col1:
-    st.plotly_chart(method_donut(method_summary), width="stretch")
-with col2:
-    st.plotly_chart(confidence_donut(method_summary), width="stretch")
+if method_summary.empty:
+    st.info(
+        "No portfolio forecast distribution results are available.",
+        icon="ℹ️",
+    )
+else:
+    col1, col2 = st.columns(2, gap="medium")
+    with col1:
+        st.plotly_chart(
+            method_donut(method_summary),
+            width="stretch",
+            alt=(
+                "Portfolio share of products assigned to Random Forest, Moving "
+                "Average, or Naive forecasting methods. There are no axes; each "
+                "segment represents a method and its share of products."
+            ),
+        )
+    with col2:
+        st.plotly_chart(
+            confidence_donut(method_summary),
+            width="stretch",
+            alt=(
+                "Portfolio share of products in the HIGH, MEDIUM, and LOW forecast "
+                "confidence categories. There are no axes; each segment represents "
+                "a confidence category and its share of products."
+            ),
+        )
 
 st.divider()
 
@@ -208,25 +296,31 @@ with st.expander("Complete Portfolio Forecast Register", expanded=False):
         key="fc_conf_filter",
     )
     all_fc = forecasts[forecasts["forecast_confidence"].isin(conf_filter)].copy()
-    all_fc["forecast_month"] = all_fc["forecast_month"].dt.strftime("%b %Y")
+    if all_fc.empty:
+        st.info(
+            "No forecast register rows match the selected confidence ratings.",
+            icon="ℹ️",
+        )
+    else:
+        all_fc["forecast_month"] = all_fc["forecast_month"].dt.strftime("%b %Y")
 
-    st.dataframe(
-        all_fc[[
-            "product_id",
-            "forecast_month",
-            "forecast_demand",
-            "model_name",
-            "forecast_confidence",
-            "data_quality_status",
-        ]].rename(columns={
-            "product_id": "Product ID",
-            "forecast_month": "Month",
-            "forecast_demand": "Forecast Demand",
-            "model_name": "Model",
-            "forecast_confidence": "Confidence",
-            "data_quality_status": "Data Quality Status",
-        }),
-        width="stretch",
-        height=380,
-        hide_index=True,
-    )
+        st.dataframe(
+            all_fc[[
+                "product_id",
+                "forecast_month",
+                "forecast_demand",
+                "model_name",
+                "forecast_confidence",
+                "data_quality_status",
+            ]].rename(columns={
+                "product_id": "Product ID",
+                "forecast_month": "Month",
+                "forecast_demand": "Forecast Demand",
+                "model_name": "Model",
+                "forecast_confidence": "Confidence",
+                "data_quality_status": "Data Quality Status",
+            }),
+            width="stretch",
+            height=380,
+            hide_index=True,
+        )

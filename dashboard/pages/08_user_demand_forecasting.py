@@ -127,6 +127,19 @@ if not isinstance(source, pd.DataFrame):
     st.caption("Upload a CSV to begin. Your upload and generated tables are kept in this session only.")
     st.stop()
 
+if len(source.columns) == 0:
+    st.error(
+        "This CSV has no column headers. Upload a CSV with a header row and "
+        "column names."
+    )
+    st.stop()
+if source.empty:
+    st.info(
+        "This CSV has column headers but no data rows. Upload a CSV containing "
+        "usable records."
+    )
+    st.stop()
+
 st.subheader("Preview and map columns")
 st.dataframe(
     source.head(12),
@@ -549,8 +562,32 @@ st.caption(
     "guarantee of future accuracy. Unknown periods are excluded from demand statistics."
 )
 
+for item in diagnostics.series:
+    if item.excluded_before_first_observation_periods or item.excluded_after_last_observation_periods:
+        st.caption(
+            f"Series {item.product_id!r}: "
+            f"{item.excluded_before_first_observation_periods} periods before "
+            "its first supplied observation and "
+            f"{item.excluded_after_last_observation_periods} periods after its "
+            "last supplied observation were excluded from its history because "
+            "product-wide coverage was not declared."
+        )
+
+if demand.data.empty:
+    st.info(
+        "Preparation completed, but no usable demand records remain. Review "
+        "the validation summary and diagnostics above."
+    )
+    st.stop()
+
 series_ids = [item.product_id for item in diagnostics.series]
 if "product_id" in demand.data.columns:
+    if not series_ids:
+        st.info(
+            "No usable product series were identified for the prepared data. "
+            "Review the validation summary and diagnostics above."
+        )
+        st.stop()
     selected_product_index = st.selectbox(
         "Series to inspect",
         options=list(range(len(series_ids))),
@@ -566,31 +603,28 @@ else:
     selected_product_id = None
     historical = demand.data.copy()
 
-for item in diagnostics.series:
-    if item.excluded_before_first_observation_periods or item.excluded_after_last_observation_periods:
-        st.caption(
-            f"Series {item.product_id!r}: "
-            f"{item.excluded_before_first_observation_periods} periods before "
-            "its first supplied observation and "
-            f"{item.excluded_after_last_observation_periods} periods after its "
-            "last supplied observation were excluded from its history because "
-            "product-wide coverage was not declared."
-        )
-
 st.subheader(
     f"Historical demand — {selected_product_id}"
     if selected_product_id is not None
     else "Historical demand — single series"
 )
-st.line_chart(
-    historical,
-    x="period",
-    y="demand_quantity",
-)
-st.dataframe(
-    historical,
-    hide_index=True,
-)
+if historical.empty:
+    st.info(
+        f"No historical demand rows are available for Product {selected_product_id}. "
+        "Choose another series or review the validation diagnostics."
+        if selected_product_id is not None
+        else "No historical demand rows are available for this series."
+    )
+else:
+    st.line_chart(
+        historical,
+        x="period",
+        y="demand_quantity",
+    )
+    st.dataframe(
+        historical,
+        hide_index=True,
+    )
 
 st.divider()
 st.subheader("Rolling-origin model comparison")
@@ -709,10 +743,13 @@ if stored_backtest_signature != backtest_signature:
     st.stop()
 
 evaluation_table = build_evaluation_export(backtest)
-st.dataframe(
-    evaluation_table,
-    hide_index=True,
-)
+if evaluation_table.empty:
+    st.info("No valid model-comparison evaluation results are available.")
+else:
+    st.dataframe(
+        evaluation_table,
+        hide_index=True,
+    )
 skipped_table = evaluation_table.loc[
     evaluation_table["record_type"].eq("skipped_window")
 ]
@@ -733,6 +770,8 @@ if not skipped_table.empty:
         ],
         hide_index=True,
     )
+if not backtest.selections:
+    st.info("No eligible product series are available for comparison.")
 for selection in backtest.selections:
     product_label = (
         f"Product {selection.product_id}" if selection.product_id is not None else "Single series"
@@ -750,12 +789,13 @@ for selection in backtest.selections:
             icon=":material/check_circle:",
         )
 
-st.download_button(
-    "Download evaluation CSV",
-    data=evaluation_table.to_csv(index=False),
-    file_name="user_demand_model_evaluation.csv",
-    mime="text/csv",
-)
+if not evaluation_table.empty:
+    st.download_button(
+        "Download evaluation CSV",
+        data=evaluation_table.to_csv(index=False),
+        file_name="user_demand_model_evaluation.csv",
+        mime="text/csv",
+    )
 
 selected_series = next(
     (
@@ -1007,18 +1047,25 @@ if forecasts is not None and forecast_signature is not None:
                     x="period",
                     y="predicted_demand",
                 )
+            else:
+                st.info(
+                    f"No forecast rows are available for Product {selected_product_id}."
+                    if selected_product_id is not None
+                    else "No forecast rows are available for the selected single series."
+                )
             st.dataframe(
                 forecast_export,
                 hide_index=True,
             )
         else:
             st.warning("No forecast rows were produced for the selected model choices.")
-        st.download_button(
-            "Download forecast CSV",
-            data=forecast_export.to_csv(index=False),
-            file_name="user_demand_forecasts.csv",
-            mime="text/csv",
-        )
+        if not forecast_export.empty:
+            st.download_button(
+                "Download forecast CSV",
+                data=forecast_export.to_csv(index=False),
+                file_name="user_demand_forecasts.csv",
+                mime="text/csv",
+            )
         forecast_available = not forecast_export.empty
         st.subheader("Operational page readiness")
         readiness = pd.DataFrame(

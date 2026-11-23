@@ -12,7 +12,7 @@ from dashboard.operational_data import (
     select_operational_source,
     source_coverage_label,
 )
-from dashboard.styles.theme import get_plotly_layout
+from dashboard.styles.theme import get_plotly_layout, get_theme_tokens
 from src.scenarios.simulation import (
     aggregate_portfolio_scenarios,
     build_demand_scenarios,
@@ -164,11 +164,17 @@ kpi_row(
     ]
 )
 
+theme_tokens = get_theme_tokens()
 series = [
-    ("baseline_demand", "Baseline", "#527D69", "solid"),
-    ("optimistic_demand", "Optimistic", "#21A179", "dash"),
-    ("pessimistic_demand", "Pessimistic", "#E5A642", "dot"),
-    ("user_scenario_demand", "User scenario", "#8B83F6", "dashdot"),
+    ("baseline_demand", "Baseline", theme_tokens["historical_demand"], "solid"),
+    ("optimistic_demand", "Optimistic", theme_tokens["forecast"], "dash"),
+    ("pessimistic_demand", "Pessimistic", theme_tokens["warning"], "dot"),
+    (
+        "user_scenario_demand",
+        "User scenario",
+        theme_tokens["secondary_comparison"],
+        "dashdot",
+    ),
 ]
 figure = go.Figure()
 for column, name, color, dash in series:
@@ -196,7 +202,16 @@ layout.update(
     legend={"orientation": "h"},
 )
 figure.update_layout(**layout)
-st.plotly_chart(figure, width="stretch")
+st.plotly_chart(
+    figure,
+    width="stretch",
+    alt=(
+        f"{scope_label} demand scenarios from {first_period:%Y-%m-%d} through "
+        f"{last_period:%Y-%m-%d} at {dataset.frequency} frequency. The horizontal "
+        "axis is forecast period and the vertical axis is demand units; four "
+        "traces compare baseline, optimistic, pessimistic, and user scenarios."
+    ),
+)
 
 st.markdown(f"### {dataset.frequency.capitalize()} scenario comparison")
 table = display_scenarios[

@@ -12,6 +12,7 @@ from dashboard.operational_data import (
     select_operational_source,
     source_coverage_label,
 )
+from dashboard.styles.theme import get_plotly_layout, get_theme_tokens
 from src.inventory.inventory_analysis import build_product_inventory_plan
 
 
@@ -309,12 +310,30 @@ if has_product_ids:
     history = dataset.history.loc[
         dataset.history["product_id"] == selected_product
     ].sort_values("period")
-    selected_plan = plans.loc[plans["product_id"] == selected_product].iloc[0]
+    matching_plans = plans.loc[plans["product_id"] == selected_product]
+    selected_plan = (
+        matching_plans.iloc[0]
+        if not matching_plans.empty
+        else None
+    )
 else:
     selected_product = None
     product_forecasts = dataset.forecasts.sort_values("forecast_period")
     history = dataset.history.sort_values("period")
-    selected_plan = plans.iloc[0]
+    selected_plan = plans.iloc[0] if not plans.empty else None
+
+if selected_plan is None:
+    if has_product_ids:
+        st.info(
+            f"No inventory plan is available for Product {selected_product}. "
+            "No dependent inventory calculations or status details can be shown "
+            "for this product."
+        )
+    else:
+        st.info(
+            "No inventory plan is available for this dataset. "
+            "No dependent inventory calculations or status details can be shown."
+        )
 
 chart_history = history[["period", "demand_quantity"]].rename(
     columns={"period": "Period", "demand_quantity": "Demand"}
@@ -327,33 +346,51 @@ chart_forecast = product_forecasts[
 chart_history["Series"] = "Known history"
 chart_forecast["Series"] = "Forecast"
 chart_data = pd.concat([chart_history, chart_forecast], ignore_index=True)
-st.plotly_chart(
-    px.line(
-        chart_data,
-        x="Period",
-        y="Demand",
-        color="Series",
-        markers=True,
-        title=(
-            f"Product {selected_product}: history and forecast"
-            if has_product_ids
-            else "Single series: history and forecast"
-        ),
+theme_tokens = get_theme_tokens()
+figure = px.line(
+    chart_data,
+    x="Period",
+    y="Demand",
+    color="Series",
+    color_discrete_map={
+        "Known history": theme_tokens["historical_demand"],
+        "Forecast": theme_tokens["forecast"],
+    },
+    markers=True,
+    title=(
+        f"Product {selected_product}: history and forecast"
+        if has_product_ids
+        else "Single series: history and forecast"
     ),
+)
+figure.update_layout(**get_plotly_layout())
+st.plotly_chart(
+    figure,
     width="stretch",
+    alt=(
+        "Demand by "
+        f"{dataset.frequency} period for "
+        + (f"Product {selected_product}" if has_product_ids else "the single series")
+        + ", comparing known history with forecasts from "
+        f"{product_forecasts['forecast_period'].min()} through "
+        f"{product_forecasts['forecast_period'].max()}. The horizontal axis is "
+        "period and the vertical axis is demand units; the two series distinguish "
+        "history from forecast."
+    ),
 )
 
-if pd.notna(selected_plan["stockout_before_replenishment"]) and bool(
-    selected_plan["stockout_before_replenishment"]
-):
-    st.warning(
-        "The series is projected to deplete before the user-entered supplier "
-        "lead time ends. This is a forecast-based estimate, not a confirmed stockout."
-    )
-for field, label in [
-    ("safety_stock_status", "Safety stock"),
-    ("eoq_status", "EOQ"),
-    ("lead_time_demand_basis", "Lead-time demand"),
-    ("depletion_status", "Stock depletion"),
-]:
-    st.caption(f"{label}: {selected_plan[field]}")
+if selected_plan is not None:
+    if pd.notna(selected_plan["stockout_before_replenishment"]) and bool(
+        selected_plan["stockout_before_replenishment"]
+    ):
+        st.warning(
+            "The series is projected to deplete before the user-entered supplier "
+            "lead time ends. This is a forecast-based estimate, not a confirmed stockout."
+        )
+    for field, label in [
+        ("safety_stock_status", "Safety stock"),
+        ("eoq_status", "EOQ"),
+        ("lead_time_demand_basis", "Lead-time demand"),
+        ("depletion_status", "Stock depletion"),
+    ]:
+        st.caption(f"{label}: {selected_plan[field]}")

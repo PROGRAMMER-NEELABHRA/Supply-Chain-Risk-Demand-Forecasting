@@ -11,6 +11,7 @@ from dashboard.operational_data import (
     select_operational_source,
     source_coverage_label,
 )
+from dashboard.styles.theme import get_plotly_layout, get_theme_tokens
 from src.risk.risk_score import (
     build_demand_risk_assessment,
     build_uploaded_demand_risk_assessment,
@@ -197,19 +198,29 @@ for indicator, explanation in definitions.items():
 
 col_chart, col_note = st.columns([1.2, 1])
 with col_chart:
+    theme_tokens = get_theme_tokens()
+    figure = px.bar(
+        summary,
+        x="affected_products",
+        y="indicator",
+        orientation="h",
+        title=f"Portfolio distribution of independent indicators ({entity_label.lower()})",
+        labels={
+            "affected_products": entity_label,
+            "indicator": "Indicator",
+        },
+    )
+    figure.update_traces(marker_color=theme_tokens["forecast"])
+    figure.update_layout(**get_plotly_layout())
     st.plotly_chart(
-        px.bar(
-            summary,
-            x="affected_products",
-            y="indicator",
-            orientation="h",
-            title=f"Portfolio distribution of independent indicators ({entity_label.lower()})",
-            labels={
-                "affected_products": entity_label,
-                "indicator": "Indicator",
-            },
-        ),
+        figure,
         width="stretch",
+        alt=(
+            f"Number of {entity_label.lower()} with each independent demand-data "
+            "indicator. The vertical axis lists indicator categories and the "
+            f"horizontal axis shows affected {entity_label.lower()} counts; "
+            "longer bars indicate more affected entities."
+        ),
     )
 with col_note:
     st.markdown("### Evaluation evidence")
@@ -347,9 +358,21 @@ else:
         "recommended_action": "Recommended investigation",
     }
 
-st.dataframe(
-    visible[table_columns].rename(columns=column_names),
-    width="stretch",
-    height=480,
-    hide_index=True,
-)
+if visible.empty:
+    if selected_columns:
+        st.info(
+            "No records match the selected indicators. Try adjusting the "
+            "selection or clearing the filters."
+        )
+    else:
+        st.info(
+            "No indicators are selected. Select one or more indicators to "
+            "show matching records."
+        )
+else:
+    st.dataframe(
+        visible[table_columns].rename(columns=column_names),
+        width="stretch",
+        height=480,
+        hide_index=True,
+    )
