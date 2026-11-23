@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "supply-chain-risk-demand-forecasting"
+version = "0.1.0"
+description = "Supply chain risk analytics and demand forecasting system"
+requires-python = ">=3.11"
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "dashboard*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

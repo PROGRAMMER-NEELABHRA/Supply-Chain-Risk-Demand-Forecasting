@@ -1,0 +1,2 @@
+evaluated_records,MAE,RMSE,WAPE_percent,model,test_start,test_end
+324,31.728672839506174,41.49750851698549,16.918338462551226,random_forest,2017-04,2017-09

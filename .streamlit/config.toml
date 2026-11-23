@@ -1,0 +1,45 @@
+[theme]
+base = "light"
+font = "sans serif"
+showSidebarBorder = true
+showWidgetBorder = true
+
+[theme.light]
+primaryColor = "#21A179"
+backgroundColor = "#F4F7F5"
+secondaryBackgroundColor = "#E8EFEB"
+textColor = "#17231E"
+borderColor = "#D9E3DD"
+dataframeHeaderBackgroundColor = "#E8EFEB"
+dataframeBorderColor = "#D9E3DD"
+
+[theme.light.sidebar]
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#E8EFEB"
+textColor = "#1D3329"
+primaryColor = "#21A179"
+borderColor = "#D9E3DD"
+linkColor = "#1D3329"
+
+[theme.dark]
+primaryColor = "#21A179"
+backgroundColor = "#171C1B"
+secondaryBackgroundColor = "#34443C"
+textColor = "#F3F6F3"
+borderColor = "#3A4840"
+dataframeHeaderBackgroundColor = "#34443C"
+dataframeBorderColor = "#3A4840"
+
+[theme.dark.sidebar]
+backgroundColor = "#111715"
+secondaryBackgroundColor = "#222B28"
+textColor = "#F3F6F3"
+primaryColor = "#21A179"
+borderColor = "#3A4840"
+linkColor = "#A2B0A7"
+
+[client]
+toolbarMode = "viewer"
+
+[server]
+maxUploadSize = 100
