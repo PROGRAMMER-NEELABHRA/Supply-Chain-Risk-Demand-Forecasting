@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+from streamlit.testing.v1 import AppTest
 
 from dashboard.data import loader
 from dashboard.styles import theme
@@ -90,6 +91,24 @@ def test_dashboard_loader_reads_current_outputs_and_invalidates_cache(
     )
 
     loader._read_csv_cached.clear()
+
+
+def test_missing_monthly_demand_shows_restore_instructions(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setattr(loader, "_PROCESSED_DIR", tmp_path)
+
+    app = AppTest.from_string(
+        "from dashboard.data.loader import load_monthly_demand\n"
+        "load_monthly_demand()"
+    ).run()
+
+    assert not app.exception
+    assert app.error
+    message = app.error[0].value
+    assert "monthly_demand_observed.csv" in message
+    assert "python run_pipeline.py" in message
+    assert "integrated_supply_chain_until_aug2017.csv" in message
 
 
 def test_theme_tokens_fall_back_when_streamlit_has_no_active_theme(monkeypatch):

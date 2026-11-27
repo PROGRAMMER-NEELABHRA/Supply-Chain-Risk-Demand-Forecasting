@@ -15,14 +15,31 @@ env/
 # Environment variables and secrets
 .env
 .env.*
+.streamlit/secrets.toml
 
 # Generated outputs
-outputs/
+outputs/*
+!outputs/forecasts/
+outputs/forecasts/*
+!outputs/forecasts/data_quality_summary.csv
+!outputs/forecasts/demand_shift_analysis.csv
+!outputs/forecasts/forecast_data_warnings.csv
+!outputs/forecasts/forecast_error_by_product.csv
+!outputs/forecasts/forecast_error_summary.csv
+!outputs/forecasts/forecast_method_summary.csv
+!outputs/forecasts/forecast_warning_summary.csv
+!outputs/forecasts/future_demand_forecasts.csv
+!outputs/forecasts/later_period_model_comparison.csv
+!outputs/forecasts/later_period_per_product_metrics.csv
+!outputs/forecasts/random_forest_feature_importance.csv
+!outputs/forecasts/random_forest_model_comparison.csv
+!outputs/forecasts/random_forest_per_product_metrics.csv
 reports/generated/
 visuals/generated/
 
 # Local processed and external data by default
-data/processed/
+data/processed/*
+!data/processed/monthly_demand_observed.csv
 data/external/
 
 # Test and coverage artifacts

@@ -1,0 +1,18 @@
+metric,value
+raw_transaction_records,166773
+unique_products,87
+observed_calendar_months,32
+first_observed_month,2015-01
+last_observed_month,2017-08
+observed_product_months,1713
+expected_full_grid_product_months,2784
+absent_product_months,1071
+internal_missing_months,0
+products_with_internal_gaps,0
+synthetic_imputed_values,0
+source_filename,integrated_supply_chain_until_aug2017.csv
+source_row_count,166773
+source_product_count,87
+source_first_order_date,2015-01-01
+source_last_order_date,2017-08-31
+source_coverage_limit,Raw transactions end 2017-08-31; later demand regimes are not observed or validated.

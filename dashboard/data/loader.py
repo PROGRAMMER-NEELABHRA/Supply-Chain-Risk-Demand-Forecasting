@@ -43,13 +43,36 @@ def _read_path(
     parse_dates: tuple[str, ...] = (),
 ) -> pd.DataFrame:
     """Read a CSV with a cache key tied to the current file signature."""
-    stat = path.stat()
+    if not path.is_file():
+        _show_missing_dataset_error(path)
+    try:
+        stat = path.stat()
+    except FileNotFoundError:
+        _show_missing_dataset_error(path)
     return _read_csv_cached(
         str(path),
         stat.st_mtime_ns,
         stat.st_size,
         parse_dates,
     )
+
+
+def _show_missing_dataset_error(path: Path) -> None:
+    """Explain how to restore a required, version-controlled DataCo artifact."""
+    try:
+        dataset_path = path.relative_to(_PROJECT_ROOT).as_posix()
+    except ValueError:
+        dataset_path = str(path)
+
+    st.error(
+        f"Required DataCo dashboard dataset `{dataset_path}` is missing. "
+        "Restore the version-controlled artifact, or supply the original "
+        "DataCo source CSV at "
+        "`data/raw/integrated_supply_chain_until_aug2017.csv` and run "
+        "`python run_pipeline.py` locally. The pipeline is not run on "
+        "dashboard reruns."
+    )
+    st.stop()
 
 
 def _read(relative_path: str) -> pd.DataFrame:

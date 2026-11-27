@@ -1,0 +1,79 @@
+product_id,warning_category,warning_message,last_recorded_month,months_since_last_record,forecast_method,forecast_confidence
+19,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+24,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+35,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+37,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+44,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+78,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+93,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+116,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+134,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+135,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+172,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+216,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+235,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+249,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+251,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+258,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+273,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+276,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+278,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+282,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+295,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+305,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+306,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+311,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+359,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+564,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+565,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+567,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+572,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+607,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+625,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+642,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+646,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+647,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+652,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+666,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+671,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+677,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+691,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+703,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+705,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+715,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+724,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+725,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+728,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+730,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+743,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+771,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+773,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+775,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+777,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+778,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+786,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+792,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+793,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+797,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+804,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+810,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+818,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+821,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+822,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+823,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+825,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+828,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+835,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+858,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+885,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+886,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+893,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+897,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+905,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+906,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+917,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+924,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+926,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+977,STALE_HISTORY,Last observed 2017-04; 4 months before forecast cutoff. This estimate is low confidence; unknown months were not filled.,2017-04-01,4,random_forest_recursive,LOW
+981,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM
+982,BASELINE_METHOD,"Forecast uses moving_average_baseline, a baseline estimate rather than a Random Forest prediction; it has not been validated as a Random Forest forecast.",2017-08-01,0,moving_average_baseline,MEDIUM

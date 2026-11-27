@@ -577,13 +577,20 @@ def test_streamlit_page_upload_and_prepare_flow_runs_in_session():
         for key, value in app.session_state.to_dict().items():
             operational_app.session_state[key] = value
         operational_app.run()
-
         assert not operational_app.exception, (
             filename,
             operational_app.exception,
         )
         assert operational_app.selectbox[0].value == USER_UPLOAD_SOURCE
-        assert operational_app.dataframe
+        if filename == "06_supply_chain_risk.py":
+            assert not operational_app.dataframe
+            assert any(
+                "No records match the selected indicators."
+                in element.value
+                for element in operational_app.info
+            )
+        else:
+            assert operational_app.dataframe
         assert not operational_app.get("file_uploader")
         assert not any(
             "run" in button.label.lower()

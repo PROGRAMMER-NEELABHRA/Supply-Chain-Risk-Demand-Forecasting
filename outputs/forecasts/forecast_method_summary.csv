@@ -1,0 +1,7 @@
+summary_type,category,product_count,forecast_count
+forecast_method,random_forest_recursive,54,162
+forecast_method,moving_average_baseline,33,99
+forecast_method,naive_last_observation_baseline,0,0
+forecast_confidence,HIGH,9,27
+forecast_confidence,MEDIUM,33,99
+forecast_confidence,LOW,45,135

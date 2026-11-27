@@ -108,7 +108,9 @@ Streamlit also prints a network address, for example `http://<computer-ip>:8501`
 
 - **Local:** Run Streamlit on your computer and open `localhost:8501`.
 - **Network:** Run on a network-connected computer and use the network URL printed by Streamlit.
-- **Hosted:** Requires an explicit deployment platform and configuration. No hosted deployment is established by this repository, so do not assume a public URL exists.
+- **Hosted:** A hosted URL is not established by this repository. To deploy on Streamlit Community Cloud, select this repository and branch and set `dashboard/app.py` as the app entry point. Cloud installs `requirements.txt` and uses the version-controlled DataCo dashboard CSV artifacts; it does not run the pipeline.
+
+The original DataCo source CSV and unrelated generated outputs are intentionally not committed. To refresh the dashboard's DataCo artifacts, supply `data/raw/integrated_supply_chain_until_aug2017.csv`, run `python run_pipeline.py` locally, review the regenerated artifacts, and commit only the dashboard files allowed by `.gitignore`. User-uploaded CSVs remain an independent workflow and are not written over DataCo files.
 
 To stop a Streamlit process started interactively, use `Ctrl+C` in the terminal that started it.
 
@@ -116,7 +118,7 @@ To stop a Streamlit process started interactively, use `Ctrl+C` in the terminal 
 
 - **The `streamlit` command is unavailable:** Use `python -m streamlit run dashboard/app.py` or activate the virtual environment first.
 - **Imports cannot be resolved:** Run commands from the repository root so the project package paths are available.
-- **Dashboard data files are missing:** Generate the processed and forecast outputs through `python run_pipeline.py`, or restore the existing data assets.
+- **Dashboard data files are missing:** Restore the version-controlled dashboard artifacts. To regenerate them locally, first supply `data/raw/integrated_supply_chain_until_aug2017.csv`, then run `python run_pipeline.py`. Streamlit Cloud does not run the pipeline on page loads or reruns.
 - **User-upload pages have no operational data:** Upload and prepare a CSV on User Demand Forecasting, run model comparison, generate forecasts, and then select the User-uploaded dataset on an operations page.
 - **Port 8501 is in use:** Stop the existing Streamlit process or start with `python -m streamlit run dashboard/app.py --server.port 8502`.
 - **Missing forecast rows:** Review the forecast warnings and eligibility information rather than assuming that a product is eligible for forecasting.
@@ -436,7 +438,7 @@ The simulator does not use residual uncertainty as a probability distribution. I
 Launching Streamlit and running the historical pipeline are separate operations:
 
 - `python -m streamlit run dashboard/app.py` starts the interactive dashboard only. It does not rebuild monthly demand or regenerate forecast CSVs.
-- `python run_pipeline.py` runs the backend historical pipeline only. It rebuilds the configured monthly-demand artifacts, performs the historical evaluation workflow, generates future forecast outputs, and builds demonstration visualizations. It does not start a web server.
+- `python run_pipeline.py` runs the backend historical pipeline only. It requires the original DataCo source at `data/raw/integrated_supply_chain_until_aug2017.csv`, rebuilds monthly-demand artifacts, performs the historical evaluation workflow, generates future forecast outputs, and builds demonstration visualizations. It does not start a web server. The raw source is not committed; the small dashboard runtime artifacts are version-controlled so the hosted app does not need to rebuild them.
 
 The complete [run_pipeline.py](run_pipeline.py) runner executes four stages:
 
